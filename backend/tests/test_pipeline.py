@@ -2,8 +2,7 @@ import unittest
 import sys
 import os
 
-# Adjust path so python can find backend directory
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../backend')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from scanner.pipeline import run_scan_pipeline, build_prompt
 
 class TestPipeline(unittest.TestCase):

@@ -2,8 +2,7 @@ import unittest
 import sys
 import os
 
-# Adjust path so python can find backend directory
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../backend')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from scanner.rules import scan_code_ast
 
 class TestScanner(unittest.TestCase):
