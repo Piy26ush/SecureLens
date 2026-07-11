@@ -37,7 +37,7 @@ export interface ScanResponse {
 }
 
 export async function scanCode(code: string, signal?: AbortSignal): Promise<ScanResponse> {
-  const res = await fetch(`${API_URL}/scan`, {
+  const res = await fetch(`${API_URL}/api/scan`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ code }),

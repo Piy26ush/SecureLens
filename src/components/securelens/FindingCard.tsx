@@ -55,22 +55,23 @@ export function FindingCard({ finding, index, defaultOpen }: Props) {
   const sevKey = String(finding.severity ?? "low").toLowerCase();
   const sev = SEV_STYLES[sevKey] ?? SEV_STYLES.low;
   const name =
+    (finding.type as string) ||
     (finding.name as string) ||
     (finding.vulnerability as string) ||
     (finding.title as string) ||
     "Security Finding";
   const line = finding.line ?? finding.line_number ?? null;
   const explanation =
-    finding.ai_explanation ||
     finding.explanation ||
+    finding.ai_explanation ||
     [finding.what_happened, finding.why_dangerous, finding.why_fix_works].filter(Boolean).join("\n\n") ||
     null;
   const attack = finding.attack_scenario ?? null;
-  const vulnerable = finding.vulnerable_code ?? null;
-  const secure = finding.secure_fix ?? finding.fix ?? null;
-  const cwe = finding.cwe ?? null;
-  const owasp = finding.owasp ?? null;
-  const source = finding.source ?? finding.citation ?? null;
+  const vulnerable = finding.snippet ?? finding.vulnerable_code ?? null;
+  const secure = finding.fix_snippet ?? finding.secure_fix ?? finding.fix ?? null;
+  const cwe = finding.cwe_id ?? finding.cwe ?? null;
+  const owasp = finding.owasp_category ?? finding.owasp_id ?? finding.owasp ?? null;
+  const source = finding.source_citation ?? finding.source ?? finding.citation ?? null;
 
   return (
     <motion.div

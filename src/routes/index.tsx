@@ -98,6 +98,16 @@ function SecureLensPage() {
   const total = result?.total_findings ?? result?.total ?? findings.length;
   const isBusy = view === "scanning";
 
+  const getRiskScoreNumber = (score: string | undefined): number => {
+    if (!score) return 0;
+    const s = score.toLowerCase();
+    if (s === "critical") return 100;
+    if (s === "high") return 75;
+    if (s === "medium") return 45;
+    if (s === "low") return 0;
+    return 0;
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200 antialiased">
       <div className="pointer-events-none fixed inset-0 -z-10 opacity-60">
@@ -202,7 +212,7 @@ function SecureLensPage() {
                       </span>
                     </div>
                     <MetricsCards
-                      riskScore={Number(result.risk_score ?? 0)}
+                      riskScore={getRiskScoreNumber(result.risk_score ? String(result.risk_score) : undefined)}
                       totalFindings={Number(total ?? 0)}
                       linesScanned={Number(result.lines_scanned ?? code.split("\n").length)}
                       executionMs={Number(result.execution_time_ms ?? result.execution_time ?? 0)}
