@@ -8,6 +8,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import { Toaster } from "sonner";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -77,20 +78,28 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "SecureLens — AI-Assisted Secure Code Auditor" },
+      {
+        name: "description",
+        content:
+          "Enterprise-grade Python security auditor powered by deterministic AST analysis, OWASP/CWE knowledge and AI-generated explanations.",
+      },
+      { property: "og:title", content: "SecureLens — AI-Assisted Secure Code Auditor" },
+      {
+        property: "og:description",
+        content: "Scan Python code for injection, traversal and misuse vulnerabilities.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: appCss,
+        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap",
       },
+      { rel: "stylesheet", href: appCss },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
   }),
@@ -102,12 +111,23 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <head>
         <HeadContent />
       </head>
-      <body>
+      <body className="bg-slate-950 font-sans text-slate-200" style={{ fontFamily: "'Inter', ui-sans-serif, system-ui, sans-serif" }}>
         {children}
+        <Toaster
+          theme="dark"
+          position="bottom-right"
+          toastOptions={{
+            style: {
+              background: "rgb(15 23 42)",
+              border: "1px solid #21262d",
+              color: "rgb(226 232 240)",
+            },
+          }}
+        />
         <Scripts />
       </body>
     </html>
