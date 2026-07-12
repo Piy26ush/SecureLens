@@ -22,6 +22,7 @@ export interface Finding {
   owasp?: string | null;
   source?: string | null;
   citation?: string | null;
+  model_used?: string | null;
   [k: string]: unknown;
 }
 

@@ -93,16 +93,17 @@ def call_groq_api(prompt: str) -> str:
         res_data = json.loads(response.read().decode('utf-8'))
         return res_data["choices"][0]["message"]["content"]
 
-def call_llm(prompt: str) -> str:
+def call_llm(prompt: str) -> tuple[str, str]:
     """
     Dual-Provider LLM Client with Automatic Fallback (High Availability).
     Tries Gemini first, falls back to Groq if Gemini fails or is unconfigured.
+    Returns (response_text, model_name_used).
     """
     # 1. Try Gemini (Primary)
     if GEMINI_API_KEY:
         try:
             logger.info(f"Sending request to primary provider: {GEMINI_MODEL}")
-            return call_gemini_api(prompt)
+            return call_gemini_api(prompt), f"Gemini ({GEMINI_MODEL})"
         except Exception as e:
             logger.warning(f"Gemini API call failed: {e}. Trying fallback provider...")
             
@@ -110,7 +111,7 @@ def call_llm(prompt: str) -> str:
     if GROQ_API_KEY:
         try:
             logger.info(f"Sending request to fallback provider: {GROQ_MODEL}")
-            return call_groq_api(prompt)
+            return call_groq_api(prompt), f"Groq ({GROQ_MODEL})"
         except Exception as e:
             logger.error(f"Groq API call failed: {e}.")
             
@@ -139,6 +140,7 @@ def run_scan_pipeline(code: str) -> List[Dict[str, Any]]:
             finding_copy["fix_snippet"] = "# LLM API Keys unconfigured. Dynamic fix snippet unavailable."
             finding_copy["owasp_category"] = f"{finding['owasp_id']} Category"
             finding_copy["source_citation"] = "AST Rules Engine"
+            finding_copy["model_used"] = "Offline Fallback"
             enriched_findings.append(finding_copy)
             continue
 
@@ -148,7 +150,7 @@ def run_scan_pipeline(code: str) -> List[Dict[str, Any]]:
             prompt = build_prompt(finding, contexts)
             
             # Call Gemini / Groq Llama
-            llm_response_str = call_llm(prompt)
+            llm_response_str, model_used = call_llm(prompt)
             
             # Parse JSON response
             llm_data = json.loads(llm_response_str)
@@ -160,7 +162,8 @@ def run_scan_pipeline(code: str) -> List[Dict[str, Any]]:
                 "attack_scenario": llm_data.get("attack_scenario", "No attack scenario provided."),
                 "fix_snippet": llm_data.get("fix_snippet", "# No fix provided."),
                 "owasp_category": llm_data.get("owasp_category", f"{finding['owasp_id']} Category"),
-                "source_citation": contexts[0]["title"] if contexts else "OWASP Reference"
+                "source_citation": contexts[0]["title"] if contexts else "OWASP Reference",
+                "model_used": model_used
             })
             enriched_findings.append(enriched_finding)
         except Exception as e:
@@ -172,6 +175,7 @@ def run_scan_pipeline(code: str) -> List[Dict[str, Any]]:
             fallback_finding["fix_snippet"] = "# Fallback fix: check logs"
             fallback_finding["owasp_category"] = f"{finding['owasp_id']} Category"
             fallback_finding["source_citation"] = "AST Local Fallback"
+            fallback_finding["model_used"] = "None (Error)"
             enriched_findings.append(fallback_finding)
 
     return enriched_findings

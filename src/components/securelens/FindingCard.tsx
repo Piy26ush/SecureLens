@@ -114,7 +114,14 @@ export function FindingCard({ finding, index, defaultOpen }: Props) {
             <div className="space-y-5 border-t border-[#21262d] px-4 py-4">
               {explanation && (
                 <section>
-                  <SectionTitle icon={<BookOpen className="h-3.5 w-3.5" />}>AI Explanation</SectionTitle>
+                  <div className="flex items-center justify-between mb-2">
+                    <SectionTitle icon={<BookOpen className="h-3.5 w-3.5" />}>AI Explanation</SectionTitle>
+                    {finding.model_used && (
+                      <span className="text-[10px] font-mono text-cyan-400 border border-cyan-500/30 bg-cyan-500/10 px-2 py-0.5 rounded-md tracking-wide">
+                        ⚡ {finding.model_used}
+                      </span>
+                    )}
+                  </div>
                   <p className="whitespace-pre-line text-sm leading-relaxed text-slate-300">{explanation}</p>
                 </section>
               )}

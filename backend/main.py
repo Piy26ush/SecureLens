@@ -49,6 +49,7 @@ class FindingModel(BaseModel):
     attack_scenario: Optional[str] = Field(None, description="Exploitation scenario explanation")
     fix_snippet: Optional[str] = Field(None, description="Secure code snippet replacement")
     source_citation: Optional[str] = Field(None, description="Cited standards document reference")
+    model_used: Optional[str] = Field(None, description="The AI model used to generate this finding description")
 
 class ScanResponse(BaseModel):
     findings: List[FindingModel] = Field(..., description="List of detected vulnerabilities and details")
