@@ -29,9 +29,10 @@ interface Props {
   totalFindings: number;
   linesScanned: number;
   executionMs: number;
+  networkMs?: number;
 }
 
-export function MetricsCards({ riskScore, totalFindings, linesScanned, executionMs }: Props) {
+export function MetricsCards({ riskScore, totalFindings, linesScanned, executionMs, networkMs }: Props) {
   const risk = useCount(riskScore);
   const total = useCount(totalFindings);
   const lines = useCount(linesScanned);
@@ -51,7 +52,15 @@ export function MetricsCards({ riskScore, totalFindings, linesScanned, execution
     },
     { label: "Total Findings", value: total, icon: Activity, color: "text-indigo-400", ring: "ring-indigo-500/20" },
     { label: "Lines Scanned", value: lines, icon: FileCode2, color: "text-slate-300", ring: "ring-slate-500/20" },
-    { label: "Execution Time", value: exec, suffix: "ms", icon: Timer, color: "text-slate-300", ring: "ring-slate-500/20" },
+    {
+      label: "Execution Time",
+      value: exec,
+      suffix: "ms",
+      icon: Timer,
+      color: "text-slate-300",
+      ring: "ring-slate-500/20",
+      breakdown: networkMs !== undefined ? { backend: executionMs, network: networkMs } : undefined,
+    },
   ];
 
   return (
@@ -84,6 +93,18 @@ export function MetricsCards({ riskScore, totalFindings, linesScanned, execution
                   transition={{ duration: 0.9, ease: "easeOut" }}
                   className={`h-full ${c.bar}`}
                 />
+              </div>
+            )}
+            {"breakdown" in c && c.breakdown && (
+              <div className="mt-3 flex items-center justify-between text-[10px] text-slate-500 font-mono border-t border-[#21262d] pt-2">
+                <div>
+                  <span className="text-[9px] uppercase tracking-wider text-slate-600 block">Backend</span>
+                  <span className="text-slate-400 font-semibold">{c.breakdown.backend} ms</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-[9px] uppercase tracking-wider text-slate-600 block">Network</span>
+                  <span className="text-slate-400 font-semibold">{c.breakdown.network} ms</span>
+                </div>
               </div>
             )}
           </motion.div>

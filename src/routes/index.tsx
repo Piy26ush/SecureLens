@@ -42,6 +42,7 @@ function SecureLensPage() {
   const [view, setView] = useState<ViewState>("idle");
   const [finished, setFinished] = useState(false);
   const [result, setResult] = useState<ScanResponse | null>(null);
+  const [networkMs, setNetworkMs] = useState(0);
 
   const loadDemo = (kind: keyof typeof DEMOS) => {
     setCode(DEMOS[kind]);
@@ -66,6 +67,11 @@ function SecureLensPage() {
     const startedAt = performance.now();
     try {
       const data = await scanCode(code);
+      const totalElapsed = performance.now() - startedAt;
+      const backendMs = data.execution_time_ms ?? data.execution_time ?? 0;
+      const netMs = Math.max(0, Math.round(totalElapsed - backendMs));
+      setNetworkMs(netMs);
+
       // Minimum pipeline time for premium feel
       const elapsed = performance.now() - startedAt;
       const minMs = 2400;
@@ -216,6 +222,7 @@ function SecureLensPage() {
                       totalFindings={Number(total ?? 0)}
                       linesScanned={Number(result.lines_scanned ?? code.split("\n").length)}
                       executionMs={Number(result.execution_time_ms ?? result.execution_time ?? 0)}
+                      networkMs={networkMs}
                     />
                   </div>
 

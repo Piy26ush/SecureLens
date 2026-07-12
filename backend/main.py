@@ -1,6 +1,7 @@
 import sys
 import os
 import logging
+import time
 from typing import List, Optional
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -56,6 +57,7 @@ class ScanResponse(BaseModel):
     total: int = Field(..., description="Total number of findings discovered")
     risk_score: str = Field(..., description="Overall project safety score based on highest severity")
     lines_scanned: int = Field(..., description="Total line count of scanned input code")
+    execution_time_ms: int = Field(..., description="Backend processing duration in milliseconds")
 
 class HealthResponse(BaseModel):
     status: str = Field(..., description="Current server state indicator")
@@ -78,6 +80,7 @@ def scan_code(request: ScanRequest):
         logger.warning("Empty source code submitted for scanning.")
         raise HTTPException(status_code=400, detail="Source code cannot be empty")
     
+    start_time = time.perf_counter()
     try:
         findings = run_scan_pipeline(request.code)
         
@@ -92,13 +95,16 @@ def scan_code(request: ScanRequest):
         elif "MEDIUM" in severities:
             risk_score = "MEDIUM"
             
-        logger.info(f"Scan complete. Total findings: {len(findings)}. Risk score: {risk_score}")
+        end_time = time.perf_counter()
+        execution_time_ms = int((end_time - start_time) * 1000)
+        logger.info(f"Scan complete. Total findings: {len(findings)}. Risk score: {risk_score}. Elapsed: {execution_time_ms}ms")
         
         return {
             "findings": findings,
             "total": len(findings),
             "risk_score": risk_score,
-            "lines_scanned": len(request.code.splitlines())
+            "lines_scanned": len(request.code.splitlines()),
+            "execution_time_ms": execution_time_ms
         }
     except Exception as e:
         logger.critical(f"Unhandled error in scan endpoint pipeline: {e}", exc_info=True)
