@@ -19,7 +19,7 @@ from config import (
 )
 
 # Import prompts from decoupled module
-from prompts.security_prompt import build_prompt
+from prompts.security_prompt import build_prompt, build_batch_prompt
 
 # Setup standard logger
 logger = logging.getLogger("securelens.pipeline")
@@ -121,7 +121,7 @@ def call_llm(prompt: str) -> tuple[str, str]:
 def run_scan_pipeline(code: str) -> List[Dict[str, Any]]:
     """
     Main pipeline: Scan code for AST findings, query VSM for context, 
-    call LLM for explanations, and merge output findings.
+    call LLM for explanations, and merge output findings in a single batched API call.
     """
     findings = scan_code_ast(code)
     
@@ -129,11 +129,11 @@ def run_scan_pipeline(code: str) -> List[Dict[str, Any]]:
     if not findings or (len(findings) == 1 and findings[0]["type"] == "syntax_error"):
         return findings
 
-    enriched_findings = []
-    for finding in findings:
-        # Check if LLM keys are present. If not, generate a basic offline template finding
-        if not GEMINI_API_KEY and not GROQ_API_KEY:
-            logger.info(f"No API keys configured. Using offline fallback for finding: {finding['type']}")
+    # Check if LLM keys are present. If not, generate a basic offline template finding
+    if not GEMINI_API_KEY and not GROQ_API_KEY:
+        logger.info("No API keys configured. Using offline fallback for all findings.")
+        enriched_findings = []
+        for finding in findings:
             finding_copy = finding.copy()
             finding_copy["explanation"] = f"Flagged potential {finding['type']}. Please configure API keys (GEMINI_API_KEY or GROQ_API_KEY) in your environment variables to receive detailed AI explanations."
             finding_copy["attack_scenario"] = f"An attacker could target the system by triggering inputs designed to invoke the unsafe AST pattern matched in {finding['type']}."
@@ -142,40 +142,108 @@ def run_scan_pipeline(code: str) -> List[Dict[str, Any]]:
             finding_copy["source_citation"] = "AST Rules Engine"
             finding_copy["model_used"] = "Offline Fallback"
             enriched_findings.append(finding_copy)
-            continue
+        return enriched_findings
 
-        try:
-            # Query vector store for guidelines
-            contexts = retrieve_security_context(finding["type"], category=finding["type"], top_k=RETRIEVER_TOP_K)
-            prompt = build_prompt(finding, contexts)
+    # 1. Retrieve contexts for all findings
+    all_contexts = []
+    for finding in findings:
+        contexts = retrieve_security_context(finding["type"], category=finding["type"], top_k=RETRIEVER_TOP_K)
+        all_contexts.append(contexts)
+
+    # 2. Build a combined batch prompt
+    batch_prompt = build_batch_prompt(findings, all_contexts)
+    
+    try:
+        # 3. Call Gemini / Groq Llama once
+        llm_response_str, model_used = call_llm(batch_prompt)
+        
+        # 4. Clean markdown code blocks if present and parse JSON response
+        clean_json = llm_response_str.strip()
+        if clean_json.startswith("```"):
+            lines = clean_json.splitlines()
+            if lines[0].startswith("```"):
+                lines = lines[1:]
+            if lines[-1].startswith("```"):
+                lines = lines[:-1]
+            clean_json = "\n".join(lines).strip()
             
-            # Call Gemini / Groq Llama
-            llm_response_str, model_used = call_llm(prompt)
+        llm_data = json.loads(clean_json)
+        explanations_list = llm_data.get("explanations", [])
+        
+        # Build index lookup map
+        explanations_by_index = {}
+        for item in explanations_list:
+            if isinstance(item, dict) and "index" in item:
+                explanations_by_index[int(item["index"])] = item
+                
+        # 5. Merge each AST finding with its respective explanation
+        enriched_findings = []
+        for idx, finding in enumerate(findings):
+            explanation_data = explanations_by_index.get(idx)
+            contexts = all_contexts[idx]
             
-            # Parse JSON response
-            llm_data = json.loads(llm_response_str)
-            
-            # Merge AST finding metadata with AI-written details
             enriched_finding = finding.copy()
-            enriched_finding.update({
-                "explanation": llm_data.get("explanation", "Vulnerability detected."),
-                "attack_scenario": llm_data.get("attack_scenario", "No attack scenario provided."),
-                "fix_snippet": llm_data.get("fix_snippet", "# No fix provided."),
-                "owasp_category": llm_data.get("owasp_category", f"{finding['owasp_id']} Category"),
-                "source_citation": contexts[0]["title"] if contexts else "OWASP Reference",
-                "model_used": model_used
-            })
+            if explanation_data:
+                enriched_finding.update({
+                    "explanation": explanation_data.get("explanation", "Vulnerability detected."),
+                    "attack_scenario": explanation_data.get("attack_scenario", "No attack scenario provided."),
+                    "fix_snippet": explanation_data.get("fix_snippet", "# No fix provided."),
+                    "owasp_category": explanation_data.get("owasp_category", f"{finding['owasp_id']} Category"),
+                    "source_citation": contexts[0]["title"] if contexts else "OWASP Reference",
+                    "model_used": model_used
+                })
+            else:
+                # Local fallback for missing index
+                enriched_finding.update({
+                    "explanation": f"Flagged potential {finding['type']}. Explanation could not be structured by LLM batch pipeline.",
+                    "attack_scenario": "Exploitation depends on application input handling.",
+                    "fix_snippet": "# Review code alignment manually.",
+                    "owasp_category": f"{finding['owasp_id']} Category",
+                    "source_citation": contexts[0]["title"] if contexts else "AST Local Fallback",
+                    "model_used": model_used
+                })
             enriched_findings.append(enriched_finding)
-        except Exception as e:
-            # Handle pipeline failures gracefully
-            logger.error(f"Failed to enrich finding {finding['type']}: {e}")
-            fallback_finding = finding.copy()
-            fallback_finding["explanation"] = f"Failed to enrich finding: {str(e)}"
-            fallback_finding["attack_scenario"] = "Failed to compile attack scenario: backend pipeline error."
-            fallback_finding["fix_snippet"] = "# Fallback fix: check logs"
-            fallback_finding["owasp_category"] = f"{finding['owasp_id']} Category"
-            fallback_finding["source_citation"] = "AST Local Fallback"
-            fallback_finding["model_used"] = "None (Error)"
-            enriched_findings.append(fallback_finding)
+        return enriched_findings
 
-    return enriched_findings
+    except Exception as e:
+        logger.error(f"Failed to run batched LLM scan pipeline: {e}. Falling back to individual requests.")
+        
+        enriched_findings = []
+        for idx, finding in enumerate(findings):
+            contexts = all_contexts[idx]
+            try:
+                single_prompt = build_prompt(finding, contexts)
+                llm_response_str, model_used = call_llm(single_prompt)
+                clean_json_single = llm_response_str.strip()
+                if clean_json_single.startswith("```"):
+                    lines_single = clean_json_single.splitlines()
+                    if lines_single[0].startswith("```"):
+                        lines_single = lines_single[1:]
+                    if lines_single[-1].startswith("```"):
+                        lines_single = lines_single[:-1]
+                    clean_json_single = "\n".join(lines_single).strip()
+                llm_data = json.loads(clean_json_single)
+                
+                enriched_finding = finding.copy()
+                enriched_finding.update({
+                    "explanation": llm_data.get("explanation", "Vulnerability detected."),
+                    "attack_scenario": llm_data.get("attack_scenario", "No attack scenario provided."),
+                    "fix_snippet": llm_data.get("fix_snippet", "# No fix provided."),
+                    "owasp_category": llm_data.get("owasp_category", f"{finding['owasp_id']} Category"),
+                    "source_citation": contexts[0]["title"] if contexts else "OWASP Reference",
+                    "model_used": model_used
+                })
+                enriched_findings.append(enriched_finding)
+            except Exception as inner_e:
+                logger.error(f"Failed individual fallback check for {finding['type']}: {inner_e}")
+                fallback_finding = finding.copy()
+                fallback_finding.update({
+                    "explanation": f"Vulnerability explanation unavailable: {str(inner_e)}",
+                    "attack_scenario": "Exploitation details omitted due to API limit or error.",
+                    "fix_snippet": "# Check backend logs",
+                    "owasp_category": f"{finding['owasp_id']} Category",
+                    "source_citation": "AST Local Fallback",
+                    "model_used": "None (Error)"
+                })
+                enriched_findings.append(fallback_finding)
+        return enriched_findings

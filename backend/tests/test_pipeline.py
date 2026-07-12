@@ -3,7 +3,7 @@ import sys
 import os
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from scanner.pipeline import run_scan_pipeline, build_prompt
+from scanner.pipeline import run_scan_pipeline, build_prompt, build_batch_prompt
 
 class TestPipeline(unittest.TestCase):
     def test_pipeline_offline_fallback(self):
@@ -47,6 +47,32 @@ class TestPipeline(unittest.TestCase):
         self.assertTrue("CWE-89" in prompt)
         self.assertTrue("Test OWASP" in prompt)
         self.assertTrue("JSON" in prompt)
+
+    def test_batch_prompt_construction(self):
+        findings = [
+            {
+                "type": "sql_injection",
+                "line": 4,
+                "severity": "HIGH",
+                "snippet": "cursor.execute(f'SELECT * FROM users WHERE id = {user_id}')"
+            },
+            {
+                "type": "eval_exec",
+                "line": 10,
+                "severity": "CRITICAL",
+                "snippet": "eval(input())"
+            }
+        ]
+        all_contexts = [
+            [{"title": "Test SQL", "document": "Never construct SQL queries dynamically."}],
+            [{"title": "Test Eval", "document": "Never use eval with untrusted input."}]
+        ]
+        prompt = build_batch_prompt(findings, all_contexts)
+        self.assertTrue("Finding #0" in prompt)
+        self.assertTrue("Finding #1" in prompt)
+        self.assertTrue("Test SQL" in prompt)
+        self.assertTrue("Test Eval" in prompt)
+        self.assertTrue("explanations" in prompt)
 
 if __name__ == "__main__":
     unittest.main()
