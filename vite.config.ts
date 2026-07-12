@@ -4,7 +4,7 @@ import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
   build: {
-    cssMinify: "esbuild",
+    cssMinify: false,
   },
   plugins: [
     tsconfigPaths(),
