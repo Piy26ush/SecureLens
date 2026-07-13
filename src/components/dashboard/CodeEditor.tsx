@@ -49,16 +49,16 @@ export function CodeEditor({ value, onChange, disabled }: Props) {
       </div>
 
       {!mounted ? (
-        /* SSR & Hydration Phase: render stable standard textarea */
+        /* SSR & Hydration Phase: render stable standard textarea with explicit height */
         <textarea
           readOnly
           value={value}
           placeholder="Loading auditor editor..."
-          className="flex-1 w-full resize-none bg-transparent p-4 font-mono text-[13px] leading-relaxed text-slate-200 outline-none placeholder:text-slate-600 min-h-0"
+          className="w-full resize-none bg-transparent p-4 font-mono text-[13px] leading-relaxed text-slate-200 outline-none placeholder:text-slate-600 h-[340px]"
           style={{ fontFamily: "'Fira Code', ui-monospace, monospace" }}
         />
       ) : ready && !isMobile ? (
-        <div className="flex-1 min-h-0">
+        <div className="w-full h-[340px]">
           <Editor
             height="100%"
             defaultLanguage="python"
@@ -89,7 +89,7 @@ export function CodeEditor({ value, onChange, disabled }: Props) {
           disabled={disabled}
           spellCheck={false}
           placeholder="Paste Python code here for security auditing..."
-          className="flex-1 w-full resize-none bg-transparent p-4 font-mono text-[13px] leading-relaxed text-slate-200 outline-none placeholder:text-slate-600 min-h-0"
+          className="w-full resize-none bg-transparent p-4 font-mono text-[13px] leading-relaxed text-slate-200 outline-none placeholder:text-slate-600 h-[340px]"
           style={{ fontFamily: "'Fira Code', ui-monospace, monospace" }}
         />
       )}
