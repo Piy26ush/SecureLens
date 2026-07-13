@@ -32,8 +32,8 @@ export function CodeEditor({ value, onChange, disabled }: Props) {
   }, []);
 
   return (
-    <div className="relative flex-1 overflow-hidden rounded-xl border border-[#21262d] bg-[#0b1020]">
-      <div className="flex items-center justify-between border-b border-[#21262d] bg-slate-950/60 px-3 py-2">
+    <div className="relative flex-1 flex flex-col overflow-hidden rounded-xl border border-[#21262d] bg-[#0b1020]">
+      <div className="flex items-center justify-between border-b border-[#21262d] bg-slate-950/60 px-3 py-2 flex-shrink-0">
         <div className="flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-full bg-red-500/70" />
           <span className="h-2.5 w-2.5 rounded-full bg-amber-500/70" />
@@ -46,28 +46,30 @@ export function CodeEditor({ value, onChange, disabled }: Props) {
       </div>
 
       {ready && !isMobile ? (
-        <Editor
-          height="calc(100% - 33px)"
-          defaultLanguage="python"
-          language="python"
-          theme="vs-dark"
-          value={value}
-          onChange={(v) => onChange(v ?? "")}
-          options={{
-            readOnly: disabled,
-            fontFamily: "'Fira Code', ui-monospace, SFMono-Regular, monospace",
-            fontLigatures: true,
-            fontSize: 13,
-            lineNumbers: "on",
-            minimap: { enabled: false },
-            scrollBeyondLastLine: false,
-            renderLineHighlight: "gutter",
-            padding: { top: 12, bottom: 12 },
-            smoothScrolling: true,
-            cursorBlinking: "smooth",
-            tabSize: 4,
-          }}
-        />
+        <div className="flex-1 min-h-0">
+          <Editor
+            height="100%"
+            defaultLanguage="python"
+            language="python"
+            theme="vs-dark"
+            value={value}
+            onChange={(v) => onChange(v ?? "")}
+            options={{
+              readOnly: disabled,
+              fontFamily: "'Fira Code', ui-monospace, SFMono-Regular, monospace",
+              fontLigatures: true,
+              fontSize: 13,
+              lineNumbers: "on",
+              minimap: { enabled: false },
+              scrollBeyondLastLine: false,
+              renderLineHighlight: "gutter",
+              padding: { top: 12, bottom: 12 },
+              smoothScrolling: true,
+              cursorBlinking: "smooth",
+              tabSize: 4,
+            }}
+          />
+        </div>
       ) : (
         <textarea
           value={value}
@@ -75,7 +77,7 @@ export function CodeEditor({ value, onChange, disabled }: Props) {
           disabled={disabled}
           spellCheck={false}
           placeholder="Paste Python code here for security auditing..."
-          className="h-[calc(100%-33px)] w-full resize-none bg-transparent p-4 font-mono text-[13px] leading-relaxed text-slate-200 outline-none placeholder:text-slate-600"
+          className="flex-1 w-full resize-none bg-transparent p-4 font-mono text-[13px] leading-relaxed text-slate-200 outline-none placeholder:text-slate-600 min-h-0"
           style={{ fontFamily: "'Fira Code', ui-monospace, monospace" }}
         />
       )}
