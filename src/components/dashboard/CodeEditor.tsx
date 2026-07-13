@@ -10,14 +10,17 @@ interface Props {
 export function CodeEditor({ value, onChange, disabled }: Props) {
   const [ready, setReady] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+    
     // Detect mobile UA or narrow width to disable Monaco
     const checkMobile = () => {
       const mobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
         navigator.userAgent
       );
-      setIsMobile(window.innerWidth < 768 || mobileUA);
+      setIsMobile(window.innerWidth < 1024 || mobileUA);
     };
 
     checkMobile();
@@ -45,7 +48,16 @@ export function CodeEditor({ value, onChange, disabled }: Props) {
         <span className="text-[10px] text-slate-500">{value.split("\n").length} lines</span>
       </div>
 
-      {ready && !isMobile ? (
+      {!mounted ? (
+        /* SSR & Hydration Phase: render stable standard textarea */
+        <textarea
+          readOnly
+          value={value}
+          placeholder="Loading auditor editor..."
+          className="flex-1 w-full resize-none bg-transparent p-4 font-mono text-[13px] leading-relaxed text-slate-200 outline-none placeholder:text-slate-600 min-h-0"
+          style={{ fontFamily: "'Fira Code', ui-monospace, monospace" }}
+        />
+      ) : ready && !isMobile ? (
         <div className="flex-1 min-h-0">
           <Editor
             height="100%"
