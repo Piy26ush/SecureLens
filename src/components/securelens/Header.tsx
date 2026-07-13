@@ -1,4 +1,3 @@
-import { Shield } from "lucide-react";
 import { motion } from "motion/react";
 
 export function Header() {
@@ -9,9 +8,11 @@ export function Header() {
       transition={{ duration: 0.4 }}
       className="flex items-center gap-3"
     >
-      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 shadow-lg shadow-indigo-500/25 ring-1 ring-indigo-400/30">
-        <Shield className="h-6 w-6 text-white" strokeWidth={2.25} />
-      </div>
+      <img
+        src="/favicon.png"
+        alt="SecureLens Logo"
+        className="h-11 w-11 rounded-xl object-cover"
+      />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <h1 className="text-xl font-semibold tracking-tight text-slate-50">SecureLens</h1>

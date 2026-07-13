@@ -1,5 +1,4 @@
 import { Link } from "@tanstack/react-router";
-import { Shield } from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 
@@ -64,20 +63,17 @@ export function LandingNav() {
           textDecoration: "none",
         }}
       >
-        <div
+        <img
+          src="/favicon.png"
+          alt="SecureLens Logo"
           style={{
             width: 32,
             height: 32,
             borderRadius: 8,
-            background: "#6366F1",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
+            objectFit: "cover",
             flexShrink: 0,
           }}
-        >
-          <Shield size={17} color="#fff" strokeWidth={2.25} />
-        </div>
+        />
         <span
           style={{
             fontFamily: "'Inter', ui-sans-serif, sans-serif",
