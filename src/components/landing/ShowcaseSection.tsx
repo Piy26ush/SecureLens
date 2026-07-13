@@ -130,7 +130,7 @@ export function ShowcaseSection() {
 
         {/* CTA to launch */}
         <div style={{ textAlign: "center" }}>
-          <Link to="/">
+          <Link to="/app">
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}

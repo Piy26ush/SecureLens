@@ -56,7 +56,7 @@ export function LandingNav() {
     >
       {/* Logo */}
       <Link
-        to="/landing"
+        to="/"
         style={{
           display: "flex",
           alignItems: "center",
@@ -118,7 +118,7 @@ export function LandingNav() {
       </div>
 
       {/* CTA */}
-      <Link to="/">
+      <Link to="/app">
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
