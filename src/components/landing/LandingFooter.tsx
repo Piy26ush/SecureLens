@@ -7,7 +7,7 @@ export function LandingFooter() {
     <footer
       style={{
         backgroundColor: "var(--landing-canvas)",
-        padding: "64px 40px 48px",
+        padding: "64px clamp(16px, 5vw, 40px) 48px",
         borderTop: "1px solid var(--landing-slate-hr)",
       }}
     >

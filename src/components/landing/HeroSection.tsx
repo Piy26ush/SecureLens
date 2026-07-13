@@ -17,7 +17,7 @@ export function HeroSection() {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        padding: "120px 40px 80px",
+        padding: "clamp(80px, 12vh, 120px) clamp(16px, 5vw, 40px) 80px",
         textAlign: "center",
         position: "relative",
         overflow: "hidden",

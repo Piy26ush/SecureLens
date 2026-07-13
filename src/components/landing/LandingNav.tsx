@@ -14,11 +14,21 @@ const NAV_LINKS = [
 
 export function LandingNav() {
   const [scrolled, setScrolled] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+
+    handleScroll();
+    handleResize();
+
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("resize", handleResize, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleResize);
+    };
   }, []);
 
   const handleAnchor = (href: string) => (e: React.MouseEvent) => {
@@ -43,13 +53,13 @@ export function LandingNav() {
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        padding: "0 40px",
+        padding: isMobile ? "0 16px" : "0 40px",
         height: "64px",
         backgroundColor: scrolled ? "rgba(5,5,5,0.88)" : "transparent",
         backdropFilter: scrolled ? "blur(12px)" : "none",
         WebkitBackdropFilter: scrolled ? "blur(12px)" : "none",
         borderBottom: scrolled ? "1px solid rgba(255,255,255,0.06)" : "none",
-        transition: "background-color 0.3s ease, backdrop-filter 0.3s ease, border-color 0.3s ease",
+        transition: "background-color 0.3s ease, backdrop-filter 0.3s ease, border-color 0.3s ease, padding 0.3s ease",
         maxWidth: "100%",
       }}
     >
@@ -88,30 +98,32 @@ export function LandingNav() {
       </Link>
 
       {/* Center links */}
-      <div style={{ display: "flex", alignItems: "center", gap: "32px" }}>
-        {NAV_LINKS.map((link) => (
-          <a
-            key={link.label}
-            href={link.href}
-            target={link.external ? "_blank" : undefined}
-            rel={link.external ? "noopener noreferrer" : undefined}
-            onClick={!link.external ? handleAnchor(link.href) : undefined}
-            style={{
-              fontFamily: "'Inter', ui-sans-serif, sans-serif",
-              fontSize: "14px",
-              fontWeight: 400,
-              color: "#d4d4d4",
-              textDecoration: "none",
-              letterSpacing: "0.01em",
-              transition: "color 0.2s ease",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "#fdfdfd")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "#d4d4d4")}
-          >
-            {link.label}
-          </a>
-        ))}
-      </div>
+      {!isMobile && (
+        <div style={{ display: "flex", alignItems: "center", gap: "32px" }}>
+          {NAV_LINKS.map((link) => (
+            <a
+              key={link.label}
+              href={link.href}
+              target={link.external ? "_blank" : undefined}
+              rel={link.external ? "noopener noreferrer" : undefined}
+              onClick={!link.external ? handleAnchor(link.href) : undefined}
+              style={{
+                fontFamily: "'Inter', ui-sans-serif, sans-serif",
+                fontSize: "14px",
+                fontWeight: 400,
+                color: "#d4d4d4",
+                textDecoration: "none",
+                letterSpacing: "0.01em",
+                transition: "color 0.2s ease",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "#fdfdfd")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "#d4d4d4")}
+            >
+              {link.label}
+            </a>
+          ))}
+        </div>
+      )}
 
       {/* CTA */}
       <Link to="/app">

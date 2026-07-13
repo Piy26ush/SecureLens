@@ -7,7 +7,7 @@ export function ShowcaseSection() {
     <section
       style={{
         backgroundColor: "var(--landing-canvas)",
-        padding: "120px 40px",
+        padding: "clamp(64px, 8vh, 120px) clamp(16px, 5vw, 40px)",
       }}
     >
       <div

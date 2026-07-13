@@ -69,7 +69,7 @@ export function TechSection() {
     <section
       style={{
         backgroundColor: "var(--landing-canvas)",
-        padding: "120px 40px",
+        padding: "clamp(64px, 8vh, 120px) clamp(16px, 5vw, 40px)",
       }}
     >
       <div
@@ -125,7 +125,7 @@ export function TechSection() {
           }}
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
             gap: "40px",
           }}
         >
