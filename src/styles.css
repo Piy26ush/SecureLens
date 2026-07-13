@@ -142,3 +142,43 @@
     color: var(--color-foreground);
   }
 }
+
+/* ============================================================
+   LANDING PAGE DESIGN SYSTEM
+   Adapted from DESIGN.md — Savee philosophy, SecureLens accent
+   ============================================================ */
+:root {
+  /* Surface hierarchy — darkness as confidence */
+  --landing-canvas:    #050505;
+  --landing-charcoal:  #151515;
+  --landing-graphite:  #1e1e1e;
+  --landing-slate-hr:  #2f2f2f;
+
+  /* Text hierarchy */
+  --landing-paper:  #fdfdfd;
+  --landing-pearl:  #d4d4d4;
+  --landing-ash:    #a3a3a3;
+  --landing-stone:  #737373;
+
+  /* SecureLens accent — the ONLY chromatic color */
+  --landing-accent: #6366F1;
+
+  /* Typography scale from DESIGN.md */
+  --landing-text-caption:    13px;
+  --landing-text-body:       16px;
+  --landing-text-body-lg:    18px;
+  --landing-text-subheading: 21px;
+  --landing-text-heading-sm: 24px;
+  --landing-text-heading:    30px;
+  --landing-text-heading-lg: 36px;
+  --landing-text-display:    60px;
+  --landing-text-display-lg: 80px;
+
+  /* Radius vocabulary: exactly two values */
+  --landing-radius-pill: 9999px;
+  --landing-radius-card: 14px;
+
+  /* Layout */
+  --landing-max-width: 1200px;
+  --landing-section-gap: 96px;
+}
