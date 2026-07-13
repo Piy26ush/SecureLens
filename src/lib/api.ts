@@ -1,4 +1,14 @@
-export const API_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:8000";
+let baseApiUrl = (import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:8000";
+
+if (typeof window !== "undefined" && baseApiUrl.includes("localhost")) {
+  const hostname = window.location.hostname;
+  // If loaded via local network IP (e.g. 192.168.x.x), dynamically replace localhost with that IP
+  if (hostname !== "localhost" && hostname !== "127.0.0.1" && !hostname.endsWith(".vercel.app")) {
+    baseApiUrl = baseApiUrl.replace("localhost", hostname);
+  }
+}
+
+export const API_URL = baseApiUrl;
 
 export type Severity = "critical" | "high" | "medium" | "low";
 
