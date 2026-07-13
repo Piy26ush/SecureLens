@@ -64,7 +64,7 @@ export function LandingNav() {
         }}
       >
         <img
-          src="/favicon.png"
+          src="/logo.png"
           alt="SecureLens Logo"
           style={{
             width: 32,

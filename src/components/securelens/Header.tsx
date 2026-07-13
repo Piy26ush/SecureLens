@@ -9,7 +9,7 @@ export function Header() {
       className="flex items-center gap-3"
     >
       <img
-        src="/favicon.png"
+        src="/logo.png"
         alt="SecureLens Logo"
         className="h-11 w-11 rounded-xl object-cover"
       />
