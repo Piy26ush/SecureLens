@@ -17,7 +17,7 @@ GROQ_MODEL = "llama-3.3-70b-versatile"
 EMBEDDING_MODEL = "text-embedding-004"
 
 # Connection & RAG configurations
-TIMEOUT_SECONDS = 30
+TIMEOUT_SECONDS = 5
 RETRIEVER_TOP_K = 2
 USE_SEMANTIC_RAG = True
 
