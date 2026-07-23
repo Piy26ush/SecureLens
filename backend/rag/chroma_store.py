@@ -41,6 +41,7 @@ class ChromaVectorStore:
                 )
                 self._is_ready = True
                 logger.info(f"ChromaDB initialized successfully at {self.persist_dir} (Using local MiniLM-L6-v2 embeddings)")
+                self.populate_if_empty()
             except Exception as e:
                 logger.error(f"Failed to initialize ChromaDB PersistentClient: {e}")
                 self._is_ready = False
