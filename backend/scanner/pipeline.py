@@ -6,32 +6,42 @@ import logging
 from typing import List, Dict, Any
 
 from .rules import scan_code_ast
-from rag.retriever import retrieve_security_context
 
-# Import centralized configuration parameters
-from config import (
-    GEMINI_API_KEY, 
-    GROQ_API_KEY, 
-    GEMINI_MODEL, 
-    GROQ_MODEL, 
-    TIMEOUT_SECONDS, 
-    RETRIEVER_TOP_K
-)
-
-# Import prompts from decoupled module
-from prompts.security_prompt import build_prompt, build_batch_prompt
+try:
+    from backend.rag.retriever import retrieve_security_context
+    from backend.config import (
+        GEMINI_API_KEY, 
+        GROQ_API_KEY, 
+        GEMINI_MODEL, 
+        GROQ_MODEL, 
+        TIMEOUT_SECONDS, 
+        RETRIEVER_TOP_K
+    )
+    from backend.prompts.security_prompt import build_prompt, build_batch_prompt
+except ImportError:
+    from rag.retriever import retrieve_security_context
+    from config import (
+        GEMINI_API_KEY, 
+        GROQ_API_KEY, 
+        GEMINI_MODEL, 
+        GROQ_MODEL, 
+        TIMEOUT_SECONDS, 
+        RETRIEVER_TOP_K
+    )
+    from prompts.security_prompt import build_prompt, build_batch_prompt
 
 # Setup standard logger
 logger = logging.getLogger("securelens.pipeline")
 
-def call_gemini_api(prompt: str) -> str:
+def call_gemini_api(prompt: str, model_name: str = None) -> str:
     """
     Sends request to Gemini using raw HTTP via urllib.
     """
     if not GEMINI_API_KEY:
         raise ValueError("Gemini API Key is missing")
 
-    url = f"https://generativelanguage.googleapis.com/v1/models/{GEMINI_MODEL}:generateContent?key={GEMINI_API_KEY}"
+    target_model = model_name if model_name else GEMINI_MODEL
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{target_model}:generateContent?key={GEMINI_API_KEY}"
     
     payload = {
         "contents": [{
@@ -53,7 +63,7 @@ def call_gemini_api(prompt: str) -> str:
     except urllib.error.HTTPError as e:
         try:
             error_body = e.read().decode('utf-8')
-            logger.error(f"Gemini API error body: {error_body}")
+            logger.error(f"Gemini API ({target_model}) error body: {error_body}")
         except Exception:
             pass
         raise e
@@ -95,18 +105,26 @@ def call_groq_api(prompt: str) -> str:
 
 def call_llm(prompt: str) -> tuple[str, str]:
     """
-    Dual-Provider LLM Client with Automatic Fallback (High Availability).
-    Tries Gemini first, falls back to Groq if Gemini fails or is unconfigured.
-    Returns (response_text, model_name_used).
+    Multi-model Gemini Cascade with Cross-Provider Groq Fallback.
+    Tries Gemini models sequentially (GEMINI_MODEL, gemini-3.6-flash, gemini-3.5-flash, gemini-3.5-flash-lite, gemini-2.0-flash)
+    to bypass model-specific rate limits or service outages, and falls back to Groq if all fail.
     """
-    # 1. Try Gemini (Primary)
     if GEMINI_API_KEY:
-        try:
-            logger.info(f"Sending request to primary provider: {GEMINI_MODEL}")
-            return call_gemini_api(prompt), f"Gemini ({GEMINI_MODEL})"
-        except Exception as e:
-            logger.warning(f"Gemini API call failed: {e}. Trying fallback provider...")
-            
+        # Determine unique models list in priority order
+        model_candidates = []
+        seen = set()
+        for m in [GEMINI_MODEL, "gemini-3.6-flash", "gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-2.0-flash"]:
+            if m and m not in seen:
+                seen.add(m)
+                model_candidates.append(m)
+
+        for model in model_candidates:
+            try:
+                logger.info(f"Attempting primary provider: Gemini ({model})")
+                return call_gemini_api(prompt, model), f"Gemini ({model})"
+            except Exception as e:
+                logger.warning(f"Gemini model {model} failed: {e}. Trying next cascade model...")
+                
     # 2. Try Groq (Fallback)
     if GROQ_API_KEY:
         try:
@@ -115,7 +133,7 @@ def call_llm(prompt: str) -> tuple[str, str]:
         except Exception as e:
             logger.error(f"Groq API call failed: {e}.")
             
-    # 3. Ultimate Offline Fallback: If both fail or are missing, raise error
+    # 3. Ultimate Fallback: raise error
     raise RuntimeError("No operational LLM provider available. Check your API keys.")
 
 def run_scan_pipeline(code: str) -> List[Dict[str, Any]]:
