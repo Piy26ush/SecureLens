@@ -1,7 +1,11 @@
 import math
 import re
+import logging
 from typing import List, Dict, Any, Set
-from .data import SECURITY_KNOWLEDGE_BASE
+from backend.rag.data import SECURITY_KNOWLEDGE_BASE
+from backend.rag.chroma_store import ChromaVectorStore
+
+logger = logging.getLogger("securelens.rag.retriever")
 
 # Standard English stopwords to clean text during tokenization
 STOPWORDS: Set[str] = {
@@ -17,17 +21,13 @@ STOPWORDS: Set[str] = {
 }
 
 def tokenize(text: str) -> List[str]:
-    """
-    Cleans, lowercases, and tokenizes text, removing common stopwords.
-    """
     cleaned = re.sub(r'[^a-zA-Z0-9\s]', '', text.lower())
     words = cleaned.split()
     return [w for w in words if w not in STOPWORDS]
 
 class VectorStoreVSM:
     """
-    A pure-Python Vector Space Model (VSM) Database using TF-IDF and Cosine Similarity.
-    Provides local semantic search without external native dependencies (ChromaDB/PyTorch).
+    Fallback Pure-Python Vector Space Model (VSM) using TF-IDF and Cosine Similarity.
     """
     def __init__(self, documents: List[Dict[str, Any]]):
         self.documents = documents
@@ -37,27 +37,20 @@ class VectorStoreVSM:
         for tokens in self.doc_tokens:
             self.vocabulary.update(tokens)
         
-        # Calculate Inverse Document Frequency (IDF) for all vocabulary terms
         self.idf: Dict[str, float] = {}
         for term in self.vocabulary:
             docs_with_term = sum(1 for tokens in self.doc_tokens if term in tokens)
-            # Logarithmic smoothing IDF
             self.idf[term] = math.log(1 + (self.num_docs / (1 + docs_with_term)))
 
-        # Build TF-IDF vector representations for each document
         self.doc_vectors: List[Dict[str, float]] = []
         self.doc_magnitudes: List[float] = []
         for tokens in self.doc_tokens:
             vector = self._compute_tfidf_vector(tokens)
             self.doc_vectors.append(vector)
-            # Calculate magnitude (Euclidean norm) for cosine similarity calculation
             magnitude = math.sqrt(sum(val ** 2 for val in vector.values()))
             self.doc_magnitudes.append(magnitude)
 
     def _compute_tfidf_vector(self, tokens: List[str]) -> Dict[str, float]:
-        """
-        Computes term-frequency weights multiplied by inverse document frequency (TF-IDF).
-        """
         tf: Dict[str, float] = {}
         for token in tokens:
             tf[token] = tf.get(token, 0.0) + 1.0
@@ -68,14 +61,9 @@ class VectorStoreVSM:
                 vector[term] = count * self.idf[term]
         return vector
 
-    def search(self, query: str, category_filter: str, top_k: int = 3) -> List[Dict[str, Any]]:
-        """
-        Filters documents by metadata category, converts query to vector, 
-        and calculates cosine similarities to retrieve top_k documents.
-        """
+    def search(self, query: str, category_filter: str, top_k: int = 2) -> List[Dict[str, Any]]:
         query_tokens = tokenize(query)
         if not query_tokens:
-            # Fallback: if query contains only stopwords, return category matches directly
             return [doc for doc in self.documents if doc.get("category") == category_filter][:top_k]
 
         query_vector = self._compute_tfidf_vector(query_tokens)
@@ -86,8 +74,7 @@ class VectorStoreVSM:
 
         results = []
         for i, doc in enumerate(self.documents):
-            # Enforce metadata filtering (must match category)
-            if doc.get("category") != category_filter:
+            if doc.get("category") and doc.get("category") != category_filter:
                 continue
 
             doc_vector = self.doc_vectors[i]
@@ -96,22 +83,35 @@ class VectorStoreVSM:
             if doc_magnitude == 0:
                 continue
 
-            # Compute dot product
             dot_product = sum(query_vector[term] * doc_vector.get(term, 0.0) for term in query_vector)
-            
-            # Cosine similarity calculation
             similarity = dot_product / (query_magnitude * doc_magnitude)
             results.append((similarity, doc))
 
-        # Sort matches by similarity score descending
         results.sort(key=lambda x: x[0], reverse=True)
         return [item[1] for item in results[:top_k]]
 
-# Instantiate the global vector database
-db = VectorStoreVSM(SECURITY_KNOWLEDGE_BASE)
+# Global instances
+vsm_store = VectorStoreVSM(SECURITY_KNOWLEDGE_BASE)
+chroma_store = ChromaVectorStore()
 
-def retrieve_security_context(query: str, category: str, top_k: int = 3) -> List[Dict[str, Any]]:
+def retrieve_security_context(query: str, category: str, top_k: int = 2) -> List[Dict[str, Any]]:
     """
-    Public query API used by the scanning pipeline to retrieve relevant OWASP context.
+    Retrieves security context for a vulnerability query.
+    Tries ChromaDB Semantic Search first; falls back to TF-IDF VSM if ChromaDB is unavailable.
     """
-    return db.search(query, category_filter=category, top_k=top_k)
+    if chroma_store.is_ready:
+        chroma_results = chroma_store.query(query_text=query, category=category, top_k=top_k)
+        if chroma_results:
+            logger.info(f"Retrieved {len(chroma_results)} chunks via ChromaDB Semantic Search.")
+            return chroma_results
+
+    logger.info("Using TF-IDF VSM Fallback Search.")
+    vsm_results = vsm_store.search(query, category_filter=category, top_k=top_k)
+    # Clone and append suffix to prevent altering original knowledge base dicts
+    enriched_vsm_results = []
+    for res in vsm_results:
+        res_copy = res.copy()
+        if "title" in res_copy:
+            res_copy["title"] = f"{res_copy['title']} (via VSM Fallback)"
+        enriched_vsm_results.append(res_copy)
+    return enriched_vsm_results

@@ -124,7 +124,7 @@ class ChromaVectorStore:
                     matched_chunks.append({
                         "id": doc_id,
                         "document": doc_text,
-                        "title": meta.get("title", ""),
+                        "title": f"{meta.get('title', '')} (via ChromaDB)",
                         "category": meta.get("category", ""),
                         "source": meta.get("source", ""),
                         "cwe_id": meta.get("cwe_id", ""),
