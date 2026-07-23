@@ -37,3 +37,12 @@ dist-ssr
 # Vercel
 .vercel/
 
+# Design reference & Roadmaps
+DESIGN.md
+SecureLens_Improvement_Roadmap_Updated.md
+SecureLens_Improvement_Roadmap_v1_v2.docx
+
+# Documentation and local notes
+docs/
+
+
