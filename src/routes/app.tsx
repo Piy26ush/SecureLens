@@ -60,7 +60,7 @@ function SecureLensPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!mounted) {
-    return <div className="min-h-screen bg-slate-950 text-slate-200" />;
+    return <div className="min-h-screen" style={{ backgroundColor: "#050505" }} />;
   }
 
   const loadDemo = (kind: keyof typeof DEMOS) => {
@@ -222,10 +222,11 @@ function SecureLensPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200 antialiased">
-      <div className="pointer-events-none fixed inset-0 -z-10 opacity-60">
-        <div className="absolute -left-32 top-0 h-96 w-96 rounded-full bg-indigo-600/10 blur-3xl" />
-        <div className="absolute -right-32 top-1/3 h-96 w-96 rounded-full bg-violet-600/10 blur-3xl" />
+    <div className="min-h-screen antialiased" style={{ backgroundColor: "#050505", color: "#fdfdfd" }}>
+      {/* Ambient glow orbs matching landing page */}
+      <div className="pointer-events-none fixed inset-0 -z-10">
+        <div className="absolute -left-48 top-0 h-[500px] w-[500px] rounded-full bg-[#6366F1]/[0.07] blur-[120px]" />
+        <div className="absolute -right-48 bottom-0 h-[500px] w-[500px] rounded-full bg-[#6366F1]/[0.04] blur-[120px]" />
       </div>
 
       <motion.main
@@ -236,18 +237,15 @@ function SecureLensPage() {
       >
         <div className="flex flex-1 flex-col gap-4 p-4 lg:flex-row lg:gap-5 lg:p-6">
           {/* LEFT PANEL — 45% */}
-          <section className="flex min-h-[560px] flex-col gap-4 rounded-2xl border border-[#21262d] bg-slate-900/40 p-4 backdrop-blur lg:min-h-0 lg:w-[45%] lg:p-5">
+          <section className="flex min-h-[560px] flex-col gap-4 rounded-2xl border border-white/[0.06] p-4 backdrop-blur lg:min-h-0 lg:w-[45%] lg:p-5" style={{ backgroundColor: "rgba(255,255,255,0.02)" }}>
             <Header />
 
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
-                  Demo Examples
-                </div>
-                <DemoButtons onLoad={loadDemo} disabled={isBusy} />
+            <div className="flex flex-col gap-3">
+              <div className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "#737373" }}>
+                Demo Examples
               </div>
-              
-              <div className="text-right">
+              <div className="flex flex-wrap items-center gap-2">
+                <DemoButtons onLoad={loadDemo} disabled={isBusy} />
                 <input
                   type="file"
                   multiple
@@ -255,14 +253,16 @@ function SecureLensPage() {
                   onChange={handleFolderUpload}
                   className="hidden"
                 />
-                <button
+                <motion.button
+                  whileHover={{ y: -1, scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isBusy}
-                  className="mt-4 flex items-center gap-1.5 rounded-lg border border-[#21262d] bg-indigo-500/10 border-indigo-500/30 px-3 py-1.5 text-xs font-semibold text-indigo-400 transition-all hover:bg-indigo-500/15 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex items-center gap-1.5 rounded-full border border-[#6366F1]/30 bg-[#6366F1]/[0.08] px-3.5 py-1.5 text-[11px] font-medium text-[#6366F1] transition-all hover:border-[#6366F1]/50 hover:bg-[#6366F1]/[0.12] disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  <FolderOpen className="h-3.5 w-3.5" />
+                  <FolderOpen className="h-3 w-3" />
                   Upload Folder
-                </button>
+                </motion.button>
               </div>
             </div>
 
@@ -270,8 +270,8 @@ function SecureLensPage() {
               {isProjectActive && projectFiles ? (
                 <div className="flex flex-1 flex-col gap-3 lg:flex-row overflow-hidden max-h-[440px]">
                   {/* File tree sidebar */}
-                  <div className="w-full lg:w-1/3 border border-[#21262d] rounded-xl bg-slate-950 p-2 overflow-y-auto flex flex-col gap-1 max-h-[140px] lg:max-h-none">
-                    <div className="text-[9px] font-bold uppercase tracking-wider text-slate-500 px-2 py-1 flex items-center gap-1">
+                  <div className="w-full lg:w-1/3 border border-white/[0.06] rounded-xl p-2 overflow-y-auto flex flex-col gap-1 max-h-[140px] lg:max-h-none" style={{ backgroundColor: "rgba(0,0,0,0.4)" }}>
+                    <div className="text-[9px] font-bold uppercase tracking-wider px-2 py-1 flex items-center gap-1" style={{ color: "#737373" }}>
                       <FileText className="h-3 w-3" />
                       Files ({projectFiles.length})
                     </div>
@@ -281,9 +281,10 @@ function SecureLensPage() {
                         onClick={() => setSelectedFileIdx(idx)}
                         className={`w-full text-left px-2.5 py-1.5 rounded-lg text-[11px] font-mono truncate border transition-all ${
                           idx === selectedFileIdx
-                            ? "bg-indigo-500/10 border-indigo-500/40 text-indigo-300"
-                            : "border-transparent text-slate-400 hover:bg-slate-900"
+                            ? "border-[#6366F1]/30 bg-[#6366F1]/[0.08] text-[#c7c8ff]"
+                            : "border-transparent hover:bg-white/[0.03]"
                         }`}
+                        style={{ color: idx === selectedFileIdx ? undefined : "#9a9a9a" }}
                       >
                         {file.path}
                       </button>
@@ -291,8 +292,8 @@ function SecureLensPage() {
                   </div>
                   {/* Editor for selected file */}
                   <div className="flex-1 flex flex-col min-h-0">
-                    <div className="text-[10px] font-mono text-slate-500 mb-1 truncate px-1">
-                      Editing: <span className="text-slate-300 font-semibold">{projectFiles[selectedFileIdx].path}</span>
+                    <div className="text-[10px] font-mono mb-1 truncate px-1" style={{ color: "#737373" }}>
+                      Editing: <span className="font-semibold" style={{ color: "#fdfdfd" }}>{projectFiles[selectedFileIdx].path}</span>
                     </div>
                     <div className="flex-1 flex flex-col min-h-0">
                       <CodeEditor
@@ -312,23 +313,31 @@ function SecureLensPage() {
               )}
             </div>
 
-            <div className="flex items-center gap-2">
-              <button
+            <div className="flex items-center gap-2.5">
+              <motion.button
                 onClick={clear}
                 disabled={isBusy}
-                className="flex items-center gap-2 rounded-lg border border-[#21262d] bg-slate-900/60 px-4 py-2.5 text-sm font-medium text-slate-300 transition-colors hover:border-red-500/40 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-50"
+                whileHover={{ y: -1, scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
+                className="flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-sm font-medium transition-all hover:border-red-500/30 hover:bg-red-500/[0.06] hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-40"
+                style={{ color: "#9a9a9a" }}
               >
-                <Trash2 className="h-4 w-4" />
+                <Trash2 className="h-3.5 w-3.5" />
                 Clear
-              </button>
+              </motion.button>
+
               <motion.button
                 onClick={scan}
                 disabled={isBusy}
-                whileHover={{ y: -1 }}
+                whileHover={{ y: -1, scale: 1.01 }}
                 whileTap={{ scale: 0.98 }}
-                className="group relative flex flex-1 items-center justify-center gap-2 overflow-hidden rounded-lg bg-gradient-to-r from-indigo-500 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/30 transition-all hover:from-indigo-400 hover:to-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
+                className="group relative flex flex-1 items-center justify-center gap-2 overflow-hidden rounded-full px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-[#6366F1]/25 transition-all disabled:cursor-not-allowed disabled:opacity-50"
+                style={{ backgroundColor: "#6366F1" }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#4f46e5")}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#6366F1")}
               >
-                <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+                {/* Shimmer */}
+                <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/15 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
                 {isBusy ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -345,7 +354,7 @@ function SecureLensPage() {
           </section>
 
           {/* RIGHT PANEL — 55% */}
-          <section className="flex min-h-[560px] flex-1 flex-col overflow-hidden rounded-2xl border border-[#21262d] bg-slate-900/40 backdrop-blur lg:min-h-0">
+          <section className="flex min-h-[560px] flex-1 flex-col overflow-hidden rounded-2xl border border-white/[0.06] backdrop-blur lg:min-h-0" style={{ backgroundColor: "rgba(255,255,255,0.02)" }}>
             <AnimatePresence mode="wait">
               {view === "idle" && (
                 <motion.div
@@ -379,20 +388,23 @@ function SecureLensPage() {
                   exit={{ opacity: 0 }}
                   className="flex flex-1 flex-col overflow-hidden"
                 >
-                  <div className="border-b border-[#21262d] px-5 py-4">
-                    <div className="mb-2 flex items-center justify-between">
-                      <h2 className="text-sm font-semibold text-slate-100">
-                        Security Report: <span className="text-indigo-400 font-mono font-medium">{projectName}</span>
+                  <div className="border-b border-white/[0.06] px-5 py-4">
+                    <div className="mb-3 flex items-center justify-between">
+                      <h2 className="text-sm font-semibold" style={{ color: "#fdfdfd" }}>
+                        Security Report:{" "}
+                        <span className="font-mono font-medium" style={{ color: "#6366F1" }}>{projectName}</span>
                       </h2>
                       <div className="flex items-center gap-2">
-                        <button
+                        <motion.button
+                          whileHover={{ y: -1, scale: 1.02 }}
+                          whileTap={{ scale: 0.97 }}
                           onClick={downloadPdfReport}
-                          className="rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 px-3 py-1 text-xs font-semibold text-indigo-400 flex items-center gap-1.5 transition-all"
+                          className="flex items-center gap-1.5 rounded-full border border-[#6366F1]/30 bg-[#6366F1]/[0.08] px-3.5 py-1.5 text-[11px] font-semibold text-[#6366F1] transition-all hover:border-[#6366F1]/50 hover:bg-[#6366F1]/[0.12]"
                         >
-                          <Download className="h-3.5 w-3.5" />
+                          <Download className="h-3 w-3" />
                           PDF Report
-                        </button>
-                        <span className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-emerald-300">
+                        </motion.button>
+                        <span className="rounded-full border border-emerald-500/30 bg-emerald-500/[0.08] px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-emerald-300">
                           Ready
                         </span>
                       </div>
@@ -413,10 +425,10 @@ function SecureLensPage() {
                     ) : (
                       <>
                         <div className="mb-3 flex items-center justify-between">
-                          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                          <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#737373" }}>
                             Findings ({findings.length})
                           </h3>
-                          <span className="text-[11px] text-slate-500">Sorted by severity</span>
+                          <span className="text-[11px]" style={{ color: "#9a9a9a" }}>Sorted by severity</span>
                         </div>
                         <FindingsList findings={findings} />
                       </>

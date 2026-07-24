@@ -35,17 +35,17 @@ export function CodeEditor({ value, onChange, disabled }: Props) {
   }, []);
 
   return (
-    <div className="relative flex-1 flex flex-col overflow-hidden rounded-xl border border-[#21262d] bg-[#0b1020]">
-      <div className="flex items-center justify-between border-b border-[#21262d] bg-slate-950/60 px-3 py-2 flex-shrink-0">
+    <div className="relative flex-1 flex flex-col overflow-hidden rounded-xl border border-white/[0.07]" style={{ backgroundColor: "#0a0a0f" }}>
+      <div className="flex items-center justify-between border-b border-white/[0.07] px-3 py-2 flex-shrink-0" style={{ backgroundColor: "rgba(0,0,0,0.4)" }}>
         <div className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full bg-red-500/70" />
-          <span className="h-2.5 w-2.5 rounded-full bg-amber-500/70" />
-          <span className="h-2.5 w-2.5 rounded-full bg-emerald-500/70" />
+          <span className="h-2 w-2 rounded-full bg-red-500/60" />
+          <span className="h-2 w-2 rounded-full bg-amber-500/60" />
+          <span className="h-2 w-2 rounded-full bg-emerald-500/60" />
         </div>
-        <span className="font-mono text-[10px] uppercase tracking-wider text-slate-500">
+        <span className="font-mono text-[10px] uppercase tracking-wider" style={{ color: "#737373" }}>
           audit.py — python
         </span>
-        <span className="text-[10px] text-slate-500">{value.split("\n").length} lines</span>
+        <span className="text-[10px]" style={{ color: "#737373" }}>{value.split("\n").length} lines</span>
       </div>
 
       {!mounted ? (
@@ -54,8 +54,8 @@ export function CodeEditor({ value, onChange, disabled }: Props) {
           readOnly
           value={value}
           placeholder="Loading auditor editor..."
-          className="w-full resize-none bg-transparent p-4 font-mono text-[13px] leading-relaxed text-slate-200 outline-none placeholder:text-slate-600 h-[340px]"
-          style={{ fontFamily: "'Fira Code', ui-monospace, monospace" }}
+          className="w-full resize-none bg-transparent p-4 font-mono text-[13px] leading-relaxed outline-none h-[340px]"
+          style={{ fontFamily: "'Fira Code', ui-monospace, monospace", color: "#d4d4d4" }}
         />
       ) : ready && !isMobile ? (
         <div className="w-full h-[340px]">
@@ -89,8 +89,8 @@ export function CodeEditor({ value, onChange, disabled }: Props) {
           disabled={disabled}
           spellCheck={false}
           placeholder="Paste Python code here for security auditing..."
-          className="w-full resize-none bg-transparent p-4 font-mono text-[13px] leading-relaxed text-slate-200 outline-none placeholder:text-slate-600 h-[340px]"
-          style={{ fontFamily: "'Fira Code', ui-monospace, monospace" }}
+          className="w-full resize-none bg-transparent p-4 font-mono text-[13px] leading-relaxed outline-none h-[340px]"
+          style={{ fontFamily: "'Fira Code', ui-monospace, monospace", color: "#d4d4d4" }}
         />
       )}
     </div>

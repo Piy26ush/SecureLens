@@ -18,10 +18,10 @@ function useCount(target: number, duration = 0.9) {
 }
 
 function riskTone(score: number) {
-  if (score >= 75) return { color: "text-red-400", ring: "ring-red-500/20", bar: "bg-red-500" };
-  if (score >= 50) return { color: "text-orange-400", ring: "ring-orange-500/20", bar: "bg-orange-500" };
-  if (score >= 25) return { color: "text-amber-400", ring: "ring-amber-500/20", bar: "bg-amber-500" };
-  return { color: "text-emerald-400", ring: "ring-emerald-500/20", bar: "bg-emerald-500" };
+  if (score >= 75) return { color: "text-red-400", bar: "bg-red-500", glow: "bg-red-500/20" };
+  if (score >= 50) return { color: "text-orange-400", bar: "bg-orange-500", glow: "bg-orange-500/20" };
+  if (score >= 25) return { color: "text-amber-400", bar: "bg-amber-500", glow: "bg-amber-500/20" };
+  return { color: "text-emerald-400", bar: "bg-emerald-500", glow: "bg-emerald-500/20" };
 }
 
 interface Props {
@@ -47,32 +47,38 @@ export function MetricsCards({ riskScore, totalFindings, linesScanned, execution
       suffix: "/100",
       icon: AlertTriangle,
       color: tone.color,
-      ring: tone.ring,
+      glow: tone.glow,
       progress: Math.min(100, Math.max(0, riskScore)),
       bar: tone.bar,
     },
-    { label: "Total Findings", value: total, icon: Activity, color: "text-indigo-400", ring: "ring-indigo-500/20" },
+    {
+      label: "Findings",
+      value: total,
+      icon: Activity,
+      color: "text-[#6366F1]",
+      glow: "bg-[#6366F1]/15",
+    },
     {
       label: "Lines Scanned",
       value: lines,
       icon: FileCode2,
-      color: "text-slate-300",
-      ring: "ring-slate-500/20",
+      color: "text-[#fdfdfd]",
+      glow: "bg-white/[0.05]",
       breakdown: filesScanned !== undefined && filesScanned > 1 ? { files: filesScanned } : undefined,
     },
     {
-      label: "Execution Time",
+      label: "Execution",
       value: exec,
       suffix: "ms",
       icon: Timer,
-      color: "text-slate-300",
-      ring: "ring-slate-500/20",
+      color: "text-[#fdfdfd]",
+      glow: "bg-white/[0.05]",
       breakdown: networkMs !== undefined ? { backend: executionMs, network: networkMs } : undefined,
     },
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
       {cards.map((c, i) => {
         const Icon = c.icon;
         return (
@@ -80,21 +86,26 @@ export function MetricsCards({ riskScore, totalFindings, linesScanned, execution
             key={c.label}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 * i, duration: 0.3 }}
-            className={`rounded-xl border border-[#21262d] bg-slate-900/60 p-4 ring-1 ${c.ring}`}
+            transition={{ delay: 0.06 * i, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            className="group relative overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 transition-colors hover:bg-white/[0.035]"
           >
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-medium uppercase tracking-wider text-slate-500">
+            {/* Subtle glow in corner */}
+            <div className={`pointer-events-none absolute -right-4 -top-4 h-16 w-16 rounded-full blur-2xl ${c.glow} opacity-60`} />
+
+            <div className="flex items-center justify-between relative z-10">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#737373]">
                 {c.label}
               </span>
-              <Icon className={`h-4 w-4 ${c.color}`} />
+              <Icon className={`h-3.5 w-3.5 ${c.color} opacity-70`} />
             </div>
-            <div className={`mt-2 font-mono text-2xl font-semibold tabular-nums ${c.color}`}>
+
+            <div className={`relative z-10 mt-2 font-mono text-2xl font-semibold tabular-nums ${c.color}`}>
               {c.value}
-              {c.suffix && <span className="ml-0.5 text-sm text-slate-500">{c.suffix}</span>}
+              {c.suffix && <span className="ml-1 text-sm text-[#737373]">{c.suffix}</span>}
             </div>
+
             {"progress" in c && c.progress !== undefined && (
-              <div className="mt-3 h-1 overflow-hidden rounded-full bg-slate-800">
+              <div className="relative z-10 mt-3 h-0.5 overflow-hidden rounded-full bg-white/[0.06]">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${c.progress}%` }}
@@ -103,22 +114,23 @@ export function MetricsCards({ riskScore, totalFindings, linesScanned, execution
                 />
               </div>
             )}
+
             {"breakdown" in c && c.breakdown && (
-              <div className="mt-3 flex items-center justify-between text-[10px] text-slate-500 font-mono border-t border-[#21262d] pt-2">
+              <div className="relative z-10 mt-3 flex items-center justify-between text-[10px] text-[#737373] font-mono border-t border-white/[0.06] pt-2">
                 {"files" in c.breakdown ? (
                   <>
-                    <span className="text-[9px] uppercase tracking-wider text-slate-600 block">Audited Scope</span>
-                    <span className="text-indigo-400 font-semibold">{c.breakdown.files} files</span>
+                    <span className="text-[9px] uppercase tracking-wider text-[#9a9a9a]">Audited</span>
+                    <span className="text-[#6366F1] font-semibold">{c.breakdown.files} files</span>
                   </>
                 ) : (
                   <>
                     <div>
-                      <span className="text-[9px] uppercase tracking-wider text-slate-600 block">Backend</span>
-                      <span className="text-slate-400 font-semibold">{(c.breakdown as { backend: number }).backend} ms</span>
+                      <span className="text-[9px] uppercase tracking-wider block text-[#9a9a9a]">Backend</span>
+                      <span className="text-[#bdbdbd] font-semibold">{(c.breakdown as { backend: number }).backend} ms</span>
                     </div>
                     <div className="text-right">
-                      <span className="text-[9px] uppercase tracking-wider text-slate-600 block">Network</span>
-                      <span className="text-slate-400 font-semibold">{(c.breakdown as { network: number }).network} ms</span>
+                      <span className="text-[9px] uppercase tracking-wider block text-[#9a9a9a]">Network</span>
+                      <span className="text-[#bdbdbd] font-semibold">{(c.breakdown as { network: number }).network} ms</span>
                     </div>
                   </>
                 )}

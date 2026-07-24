@@ -38,14 +38,26 @@ export function PipelineLoader({ running, finished }: Props) {
   }, [finished]);
 
   return (
-    <div className="flex h-full flex-col items-center justify-center px-8">
+    <div className="flex h-full flex-col items-center justify-center px-8 py-12">
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         className="mb-8 text-center"
       >
-        <h3 className="text-lg font-semibold text-slate-100">Running Security Audit</h3>
-        <p className="mt-1 text-sm text-slate-400">
+        {/* Spinning ring */}
+        <div className="relative mx-auto mb-6 h-14 w-14">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+            className="absolute inset-0 rounded-full border-2 border-transparent border-t-[#6366F1]"
+          />
+          <div className="absolute inset-2 flex items-center justify-center rounded-full" style={{ backgroundColor: "rgba(99,102,241,0.08)" }}>
+            <Loader2 className="h-5 w-5 animate-spin text-[#6366F1]" />
+          </div>
+        </div>
+
+        <h3 className="text-base font-semibold" style={{ color: "#fdfdfd" }}>Running Security Audit</h3>
+        <p className="mt-1 text-sm" style={{ color: "#737373" }}>
           SecureLens is analyzing your code through a deterministic pipeline.
         </p>
       </motion.div>
@@ -62,14 +74,14 @@ export function PipelineLoader({ running, finished }: Props) {
               initial={{ opacity: 0, x: -12 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: i * 0.08 }}
-              className={`flex items-center gap-3 rounded-lg border px-3.5 py-3 transition-colors ${
+              className={`flex items-center gap-3 rounded-xl border px-3.5 py-2.5 transition-colors ${
                 isFinal
-                  ? "border-emerald-500/40 bg-emerald-500/10"
+                  ? "border-emerald-500/25 bg-emerald-500/[0.05]"
                   : isActive
-                  ? "border-indigo-500/50 bg-indigo-500/10"
+                  ? "border-[#6366F1]/40 bg-[#6366F1]/[0.05]"
                   : isDone
-                  ? "border-[#21262d] bg-slate-900/60"
-                  : "border-[#21262d] bg-slate-950/40"
+                  ? "border-white/[0.05] bg-white/[0.02]"
+                  : "border-white/[0.04] bg-transparent"
               }`}
             >
               <div className="flex h-6 w-6 shrink-0 items-center justify-center">
@@ -94,12 +106,13 @@ export function PipelineLoader({ running, finished }: Props) {
                     </motion.div>
                   ) : isActive ? (
                     <motion.div key="active" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                      <Loader2 className="h-4 w-4 animate-spin text-indigo-400" />
+                      <Loader2 className="h-4 w-4 animate-spin text-[#6366F1]" />
                     </motion.div>
                   ) : (
                     <motion.div
                       key="idle"
-                      className="h-2 w-2 rounded-full bg-slate-700"
+                      className="h-1.5 w-1.5 rounded-full"
+                      style={{ backgroundColor: "rgba(255,255,255,0.12)" }}
                     />
                   )}
                 </AnimatePresence>
@@ -109,13 +122,22 @@ export function PipelineLoader({ running, finished }: Props) {
                   isFinal
                     ? "font-medium text-emerald-300"
                     : isActive
-                    ? "font-medium text-slate-100"
+                    ? "font-medium"
                     : isDone
-                    ? "text-slate-300"
+                    ? ""
                     : idle
-                    ? "text-slate-500"
-                    : "text-slate-400"
+                    ? ""
+                    : ""
                 }`}
+                style={{
+                  color: isFinal
+                    ? undefined
+                    : isActive
+                    ? "#fdfdfd"
+                    : isDone
+                    ? "#bdbdbd"
+                    : "#737373",
+                }}
               >
                 {label}
               </span>

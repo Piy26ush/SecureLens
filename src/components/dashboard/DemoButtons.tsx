@@ -14,21 +14,22 @@ const demos = [
 
 export function DemoButtons({ onLoad, disabled }: Props) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+    <div className="flex flex-wrap gap-2">
       {demos.map(({ key, label, icon: Icon }, i) => (
         <motion.button
           key={key}
           type="button"
           disabled={disabled}
           onClick={() => onLoad(key)}
-          initial={{ opacity: 0, y: 6 }}
+          initial={{ opacity: 0, y: 4 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 * i, duration: 0.3 }}
-          whileHover={{ y: -1 }}
-          className="group flex items-center justify-center gap-2 rounded-lg border border-[#21262d] bg-slate-900/60 px-3 py-2.5 text-xs font-medium text-slate-300 transition-colors hover:border-indigo-500/40 hover:bg-slate-900 hover:text-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+          whileHover={{ y: -1, scale: 1.02 }}
+          whileTap={{ scale: 0.97 }}
+          className="group flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] px-3.5 py-1.5 text-[11px] font-medium text-[#9a9a9a] transition-all hover:border-[#6366F1]/40 hover:bg-[#6366F1]/[0.06] hover:text-[#c7c8ff] disabled:cursor-not-allowed disabled:opacity-40"
         >
-          <Icon className="h-3.5 w-3.5 text-slate-400 transition-colors group-hover:text-indigo-400" />
-          <span className="truncate">{label}</span>
+          <Icon className="h-3 w-3 text-[#737373] transition-colors group-hover:text-[#6366F1]" />
+          <span>{label}</span>
         </motion.button>
       ))}
     </div>
