@@ -1,1 +1,1 @@
-# Package initializer
+# SecureLens Backend Package

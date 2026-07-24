@@ -3,7 +3,7 @@ import sys
 import os
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from scanner.rules import scan_code_ast
+from scanner.scanner import scan_code_ast
 
 class TestScanner(unittest.TestCase):
     def test_eval_exec_detection(self):
