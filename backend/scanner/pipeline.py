@@ -5,7 +5,7 @@ import urllib.error
 import logging
 from typing import List, Dict, Any
 
-from .rules import scan_code_ast
+from .scanner import scan_code_ast
 
 try:
     from backend.rag.retriever import retrieve_security_context
@@ -265,3 +265,121 @@ def run_scan_pipeline(code: str) -> List[Dict[str, Any]]:
                 })
                 enriched_findings.append(fallback_finding)
         return enriched_findings
+
+def run_project_scan_pipeline(files: List[Dict[str, str]]) -> List[Dict[str, Any]]:
+    """
+    Scans multiple project files recursively, aggregates findings,
+    optimizes AI token usage by caching explanations by vulnerability type,
+    and returns a combined enriched findings list.
+    """
+    logger.info(f"Starting project scan pipeline for {len(files)} files.")
+    
+    # 1. Run AST rules on each file
+    all_findings = []
+    for f in files:
+        path = f.get("path", "unknown_file.py")
+        content = f.get("content", "")
+        
+        # Parse and scan
+        file_findings = scan_code_ast(content)
+        for finding in file_findings:
+            # Map path and file name
+            finding_copy = finding.copy()
+            finding_copy["file_path"] = path
+            all_findings.append(finding_copy)
+
+    # If no findings or only syntax errors, return early
+    if not all_findings:
+        return []
+
+    # 2. Extract unique vulnerability types to optimize LLM calls
+    unique_vuln_types = list(set(finding["type"] for finding in all_findings if finding["type"] != "syntax_error"))
+    
+    # Check if LLM keys are configured
+    if not GEMINI_API_KEY and not GROQ_API_KEY:
+        logger.info("No API keys configured. Using offline fallback for all project findings.")
+        enriched_findings = []
+        for finding in all_findings:
+            finding_copy = finding.copy()
+            finding_copy["explanation"] = f"Flagged potential {finding['type']}. Please configure API keys (GEMINI_API_KEY or GROQ_API_KEY) in your environment variables to receive detailed AI explanations."
+            finding_copy["attack_scenario"] = f"An attacker could target the system by triggering inputs designed to invoke the unsafe AST pattern matched in {finding['type']}."
+            finding_copy["fix_snippet"] = "# LLM API Keys unconfigured. Dynamic fix snippet unavailable."
+            finding_copy["owasp_category"] = f"{finding.get('owasp_id', 'N/A')} Category"
+            finding_copy["source_citation"] = "AST Rules Engine"
+            finding_copy["model_used"] = "Offline Fallback"
+            enriched_findings.append(finding_copy)
+        return enriched_findings
+
+    # 3. Retrieve context and query LLM once per unique vulnerability type
+    cached_explanations = {}
+    
+    for vuln_type in unique_vuln_types:
+        try:
+            # Retrieve RAG context
+            contexts = retrieve_security_context(vuln_type, category=vuln_type, top_k=RETRIEVER_TOP_K)
+            
+            # Find the first finding of this type to use as the prompt example
+            example_finding = next(f for f in all_findings if f["type"] == vuln_type)
+            
+            single_prompt = build_prompt(example_finding, contexts)
+            llm_response_str, model_used = call_llm(single_prompt)
+            
+            clean_json = llm_response_str.strip()
+            if clean_json.startswith("```"):
+                lines = clean_json.splitlines()
+                if lines[0].startswith("```"):
+                    lines = lines[1:]
+                if lines[-1].startswith("```"):
+                    lines = lines[:-1]
+                clean_json = "\n".join(lines).strip()
+                
+            llm_data = json.loads(clean_json)
+            cached_explanations[vuln_type] = {
+                "explanation": llm_data.get("explanation", "Vulnerability detected."),
+                "attack_scenario": llm_data.get("attack_scenario", "No attack scenario provided."),
+                "fix_snippet": llm_data.get("fix_snippet", "# No fix provided."),
+                "owasp_category": llm_data.get("owasp_category", f"{example_finding.get('owasp_id', 'N/A')} Category"),
+                "source_citation": contexts[0]["title"] if contexts else "OWASP Reference",
+                "model_used": model_used
+            }
+        except Exception as e:
+            logger.error(f"Failed to generate explanation for unique type {vuln_type}: {e}")
+            example_finding = next(f for f in all_findings if f["type"] == vuln_type)
+            cached_explanations[vuln_type] = {
+                "explanation": f"Flagged potential {vuln_type}. Detailed AI explanation timed out or failed.",
+                "attack_scenario": "Exploitation depends on application configuration and sanitization.",
+                "fix_snippet": "# Check backend logs",
+                "owasp_category": f"{example_finding.get('owasp_id', 'N/A')} Category",
+                "source_citation": "AST Local Fallback",
+                "model_used": "Offline Fallback (Error)"
+            }
+
+    # 4. Map the cached explanations back to all occurrences
+    enriched_findings = []
+    for finding in all_findings:
+        vuln_type = finding["type"]
+        enriched_finding = finding.copy()
+        
+        if vuln_type == "syntax_error":
+            enriched_finding.update({
+                "explanation": "Code contains syntax errors and cannot be successfully parsed by the Python compiler.",
+                "attack_scenario": "Syntax errors do not present direct vulnerability vectors but break operational code integrity.",
+                "fix_snippet": "# Fix syntax errors manually.",
+                "owasp_category": "N/A",
+                "source_citation": "Python Compiler",
+                "model_used": "Static Parser"
+            })
+        elif vuln_type in cached_explanations:
+            enriched_finding.update(cached_explanations[vuln_type])
+        else:
+            enriched_finding.update({
+                "explanation": f"Flagged potential {vuln_type}.",
+                "attack_scenario": "No attack scenario available.",
+                "fix_snippet": "# Review code manually.",
+                "owasp_category": f"{finding.get('owasp_id', 'N/A')} Category",
+                "source_citation": "AST Local Fallback",
+                "model_used": "None"
+            })
+        enriched_findings.append(enriched_finding)
+        
+    return enriched_findings

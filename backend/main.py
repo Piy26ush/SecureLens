@@ -271,3 +271,14 @@ def get_models():
         "fallback_provider": f"Groq ({GROQ_MODEL})",
         "timeout_seconds": TIMEOUT_SECONDS
     }
+
+@app.get("/api/asset")
+async def get_local_asset(name: str):
+    from fastapi.responses import FileResponse
+    safe_name = os.path.basename(name)
+    artifacts_dir = "/Users/piyush/.gemini/antigravity-ide/brain/c84c4462-6681-4320-87c1-9bbd71c37699"
+    file_path = os.path.join(artifacts_dir, safe_name)
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="Asset not found")
+    return FileResponse(file_path)
+

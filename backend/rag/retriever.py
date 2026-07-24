@@ -92,15 +92,26 @@ class VectorStoreVSM:
 
 # Global instances
 vsm_store = VectorStoreVSM(SECURITY_KNOWLEDGE_BASE)
-chroma_store = ChromaVectorStore()
+_chroma_store_instance = None
+
+def get_chroma_store():
+    global _chroma_store_instance
+    if _chroma_store_instance is None:
+        try:
+            logger.info("Initializing ChromaDB Persistent Vector Store lazily...")
+            _chroma_store_instance = ChromaVectorStore()
+        except Exception as e:
+            logger.error(f"Failed to initialize ChromaDB lazily: {e}")
+    return _chroma_store_instance
 
 def retrieve_security_context(query: str, category: str, top_k: int = 2) -> List[Dict[str, Any]]:
     """
     Retrieves security context for a vulnerability query.
     Tries ChromaDB Semantic Search first; falls back to TF-IDF VSM if ChromaDB is unavailable.
     """
-    if chroma_store.is_ready:
-        chroma_results = chroma_store.query(query_text=query, category=category, top_k=top_k)
+    store = get_chroma_store()
+    if store and store.is_ready:
+        chroma_results = store.query(query_text=query, category=category, top_k=top_k)
         if chroma_results:
             logger.info(f"Retrieved {len(chroma_results)} chunks via ChromaDB Semantic Search.")
             return chroma_results
