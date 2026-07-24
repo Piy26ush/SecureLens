@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
 import { LandingNav } from "@/components/landing/LandingNav";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { ProblemSection } from "@/components/landing/ProblemSection";
@@ -28,6 +29,14 @@ export const Route = createFileRoute("/")({
 });
 
 function LandingPage() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <div style={{ backgroundColor: "var(--landing-canvas)", minHeight: "100vh" }} />;
+  }
   return (
     <div
       style={{

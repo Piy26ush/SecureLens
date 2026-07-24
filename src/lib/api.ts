@@ -2,7 +2,6 @@ let baseApiUrl = (import.meta.env.VITE_API_URL as string | undefined) ?? "http:/
 
 if (typeof window !== "undefined" && baseApiUrl.includes("localhost")) {
   const hostname = window.location.hostname;
-  // If loaded via local network IP (e.g. 192.168.x.x), dynamically replace localhost with that IP
   if (hostname !== "localhost" && hostname !== "127.0.0.1" && !hostname.endsWith(".vercel.app")) {
     baseApiUrl = baseApiUrl.replace("localhost", hostname);
   }
@@ -13,44 +12,54 @@ export const API_URL = baseApiUrl;
 export type Severity = "critical" | "high" | "medium" | "low";
 
 export interface Finding {
+  type: string;
+  line: number;
+  file_path?: string;
   severity: Severity | string;
-  name?: string;
-  vulnerability?: string;
-  title?: string;
-  line?: number | null;
-  line_number?: number | null;
-  ai_explanation?: string | null;
+  snippet: string;
+  cwe_id?: string | null;
+  owasp_id?: string | null;
+  owasp_category?: string | null;
   explanation?: string | null;
-  what_happened?: string | null;
-  why_dangerous?: string | null;
-  why_fix_works?: string | null;
   attack_scenario?: string | null;
-  vulnerable_code?: string | null;
-  secure_fix?: string | null;
-  fix?: string | null;
-  cwe?: string | null;
-  owasp?: string | null;
-  source?: string | null;
-  citation?: string | null;
+  fix_snippet?: string | null;
+  source_citation?: string | null;
   model_used?: string | null;
-  [k: string]: unknown;
 }
 
 export interface ScanResponse {
-  risk_score?: number;
-  total_findings?: number;
-  total?: number;
-  lines_scanned?: number;
-  execution_time?: number;
-  execution_time_ms?: number;
-  findings?: Finding[];
-  [k: string]: unknown;
+  findings: Finding[];
+  total: number;
+  risk_score: string;
+  lines_scanned: number;
+  files_scanned?: number;
+  execution_time_ms: number;
+}
+
+export interface StatsResponse {
+  total_scans_run: number;
+  average_risk_score: string;
+  findings_by_severity: Record<string, number>;
+}
+
+// User Session ID Isolation Helper (Option A)
+export function getUserId(): string {
+  if (typeof window === "undefined") return "default_user";
+  let uid = localStorage.getItem("securelens_user_id");
+  if (!uid) {
+    uid = "usr_" + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    localStorage.setItem("securelens_user_id", uid);
+  }
+  return uid;
 }
 
 export async function scanCode(code: string, signal?: AbortSignal): Promise<ScanResponse> {
   const res = await fetch(`${API_URL}/api/scan`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "X-User-ID": getUserId()
+    },
     body: JSON.stringify({ code }),
     signal,
   });
@@ -69,4 +78,80 @@ export async function scanCode(code: string, signal?: AbortSignal): Promise<Scan
   }
 
   return res.json();
+}
+
+export async function scanProject(
+  projectName: string,
+  files: { path: string; content: string }[],
+  signal?: AbortSignal
+): Promise<ScanResponse> {
+  const res = await fetch(`${API_URL}/api/scan-project`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-User-ID": getUserId()
+    },
+    body: JSON.stringify({ project_name: projectName, files }),
+    signal,
+  });
+
+  if (!res.ok) {
+    let detail = `Request failed (${res.status})`;
+    try {
+      const j = await res.json();
+      if (j?.detail) detail = typeof j.detail === "string" ? j.detail : JSON.stringify(j.detail);
+    } catch {
+      /* ignore */
+    }
+    const err = new Error(detail) as Error & { status?: number };
+    err.status = res.status;
+    throw err;
+  }
+
+  return res.json();
+}
+
+export async function fetchStats(signal?: AbortSignal): Promise<StatsResponse> {
+  const res = await fetch(`${API_URL}/api/stats`, {
+    method: "GET",
+    headers: {
+      "X-User-ID": getUserId()
+    },
+    signal,
+  });
+
+  if (!res.ok) {
+    throw new Error(`Failed to fetch stats (${res.status})`);
+  }
+
+  return res.json();
+}
+
+export async function exportPdfReport(
+  projectName: string,
+  findings: Finding[],
+  riskScore: string,
+  linesScanned: number,
+  executionTimeMs: number
+): Promise<Blob> {
+  const res = await fetch(`${API_URL}/api/export-report`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-User-ID": getUserId()
+    },
+    body: JSON.stringify({
+      project_name: projectName,
+      findings,
+      risk_score: riskScore,
+      lines_scanned: linesScanned,
+      execution_time_ms: executionTimeMs
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Failed to generate PDF report (${res.status})`);
+  }
+
+  return res.blob();
 }
