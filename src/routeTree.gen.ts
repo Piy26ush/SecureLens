@@ -9,10 +9,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as FeaturesRouteImport } from './routes/features'
 import { Route as ExperimentRouteImport } from './routes/experiment'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 
+const FeaturesRoute = FeaturesRouteImport.update({
+  id: '/features',
+  path: '/features',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ExperimentRoute = ExperimentRouteImport.update({
   id: '/experiment',
   path: '/experiment',
@@ -33,34 +39,45 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRoute
   '/experiment': typeof ExperimentRoute
+  '/features': typeof FeaturesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app': typeof AppRoute
   '/experiment': typeof ExperimentRoute
+  '/features': typeof FeaturesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/app': typeof AppRoute
   '/experiment': typeof ExperimentRoute
+  '/features': typeof FeaturesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/app' | '/experiment'
+  fullPaths: '/' | '/app' | '/experiment' | '/features'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/app' | '/experiment'
-  id: '__root__' | '/' | '/app' | '/experiment'
+  to: '/' | '/app' | '/experiment' | '/features'
+  id: '__root__' | '/' | '/app' | '/experiment' | '/features'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRoute
   ExperimentRoute: typeof ExperimentRoute
+  FeaturesRoute: typeof FeaturesRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/features': {
+      id: '/features'
+      path: '/features'
+      fullPath: '/features'
+      preLoaderRoute: typeof FeaturesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/experiment': {
       id: '/experiment'
       path: '/experiment'
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRoute,
   ExperimentRoute: ExperimentRoute,
+  FeaturesRoute: FeaturesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -2,16 +2,6 @@ import { Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 
-const NAV_LINKS = [
-  { label: "Features", href: "#features" },
-  { label: "Architecture", href: "#architecture" },
-  {
-    label: "GitHub",
-    href: "https://github.com/Piy26ush/SecureLens",
-    external: true,
-  },
-];
-
 export function LandingNav() {
   const [scrolled, setScrolled] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -30,14 +20,6 @@ export function LandingNav() {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
-
-  const handleAnchor = (href: string) => (e: React.MouseEvent) => {
-    if (href.startsWith("#")) {
-      e.preventDefault();
-      const el = document.querySelector(href);
-      el?.scrollIntoView({ behavior: "smooth" });
-    }
-  };
 
   return (
     <motion.nav
@@ -97,35 +79,63 @@ export function LandingNav() {
         </span>
       </Link>
 
-      {/* Center links */}
+      {/* Center navigation links */}
       {!isMobile && (
         <div style={{ display: "flex", alignItems: "center", gap: "32px" }}>
-          {NAV_LINKS.map((link) => (
-            <a
-              key={link.label}
-              href={link.href}
-              target={link.external ? "_blank" : undefined}
-              rel={link.external ? "noopener noreferrer" : undefined}
-              onClick={!link.external ? handleAnchor(link.href) : undefined}
-              style={{
-                fontFamily: "'Inter', ui-sans-serif, sans-serif",
-                fontSize: "14px",
-                fontWeight: 400,
-                color: "#d4d4d4",
-                textDecoration: "none",
-                letterSpacing: "0.01em",
-                transition: "color 0.2s ease",
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = "#fdfdfd")}
-              onMouseLeave={(e) => (e.currentTarget.style.color = "#d4d4d4")}
-            >
-              {link.label}
-            </a>
-          ))}
+          <Link
+            to="/"
+            style={{
+              fontFamily: "'Inter', ui-sans-serif, sans-serif",
+              fontSize: "14px",
+              fontWeight: 400,
+              color: "#d4d4d4",
+              textDecoration: "none",
+              letterSpacing: "0.01em",
+              transition: "color 0.2s ease",
+            }}
+            activeProps={{ style: { color: "#8052ff", fontWeight: 500 } }}
+          >
+            Home
+          </Link>
+
+          <Link
+            to="/features"
+            style={{
+              fontFamily: "'Inter', ui-sans-serif, sans-serif",
+              fontSize: "14px",
+              fontWeight: 400,
+              color: "#d4d4d4",
+              textDecoration: "none",
+              letterSpacing: "0.01em",
+              transition: "color 0.2s ease",
+            }}
+            activeProps={{ style: { color: "#8052ff", fontWeight: 500 } }}
+          >
+            Capabilities
+          </Link>
+
+          <a
+            href="https://github.com/Piy26ush/SecureLens"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              fontFamily: "'Inter', ui-sans-serif, sans-serif",
+              fontSize: "14px",
+              fontWeight: 400,
+              color: "#d4d4d4",
+              textDecoration: "none",
+              letterSpacing: "0.01em",
+              transition: "color 0.2s ease",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "#fdfdfd")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "#d4d4d4")}
+          >
+            GitHub
+          </a>
         </div>
       )}
 
-      {/* CTA */}
+      {/* CTA Button */}
       <Link to="/app">
         <motion.button
           whileHover={{ scale: 1.02 }}
@@ -135,7 +145,7 @@ export function LandingNav() {
             fontSize: "14px",
             fontWeight: 500,
             color: "#fdfdfd",
-            backgroundColor: "#6366F1",
+            backgroundColor: "#8052ff",
             border: "none",
             borderRadius: "9999px",
             padding: "8px 20px",
@@ -145,14 +155,14 @@ export function LandingNav() {
           }}
           onMouseEnter={(e) =>
             ((e.currentTarget as HTMLButtonElement).style.backgroundColor =
-              "#4f46e5")
+              "#6b3df5")
           }
           onMouseLeave={(e) =>
             ((e.currentTarget as HTMLButtonElement).style.backgroundColor =
-              "#6366F1")
+              "#8052ff")
           }
         >
-          Launch SecureLens
+          Launch Auditor
         </motion.button>
       </Link>
     </motion.nav>

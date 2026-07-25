@@ -1,272 +1,337 @@
 import { Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
-import { ArrowRight, Github } from "lucide-react";
+import { ArrowRight, Github, ShieldCheck } from "lucide-react";
+import { ThreeDHeroCanvas } from "./ThreeDHeroCanvas";
+import { useState } from "react";
+
+const EASING = [0.22, 1, 0.36, 1];
+
+const FADE_LEFT = {
+  hidden: { opacity: 0, x: -70 },
+  show: { opacity: 1, x: 0, transition: { duration: 0.8, ease: EASING } },
+};
+
+const FADE_RIGHT = {
+  hidden: { opacity: 0, x: 70 },
+  show: { opacity: 1, x: 0, transition: { duration: 0.8, ease: EASING } },
+};
 
 const FADE_UP = {
-  hidden: { opacity: 0, y: 24 },
-  show: { opacity: 1, y: 0 },
+  hidden: { opacity: 0, y: 35 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: EASING } },
 };
 
 export function HeroSection() {
-  return (
-    <section
-      style={{
-        minHeight: "100svh",
-        backgroundColor: "var(--landing-canvas)",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "clamp(80px, 12vh, 120px) clamp(16px, 5vw, 40px) 80px",
-        textAlign: "center",
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
-      {/* Subtle grid pattern — very low opacity, not a gradient */}
-      <div
-        aria-hidden
-        style={{
-          position: "absolute",
-          inset: 0,
-          backgroundImage:
-            "linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)",
-          backgroundSize: "60px 60px",
-          maskImage:
-            "radial-gradient(ellipse 70% 60% at 50% 50%, black 30%, transparent 100%)",
-          WebkitMaskImage:
-            "radial-gradient(ellipse 70% 60% at 50% 50%, black 30%, transparent 100%)",
-          pointerEvents: "none",
-        }}
-      />
+  // 3D Card mouse parallax tilt state
+  const [tilt, setTilt] = useState({ rx: 0, ry: 0, spotX: 50, spotY: 50 });
 
-      <motion.div
-        initial="hidden"
-        animate="show"
-        variants={{ show: { transition: { staggerChildren: 0.1 } } }}
+  const handleCardMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    setTilt({
+      rx: y * -14, // rotateX
+      ry: x * 14,  // rotateY
+      spotX: ((e.clientX - rect.left) / rect.width) * 100,
+      spotY: ((e.clientY - rect.top) / rect.height) * 100,
+    });
+  };
+
+  const handleCardMouseLeave = () => {
+    setTilt({ rx: 0, ry: 0, spotX: 50, spotY: 50 });
+  };
+
+  return (
+    <div style={{ position: "relative", backgroundColor: "#000000", overflow: "hidden" }}>
+      {/* 3D Canvas Stage */}
+      <ThreeDHeroCanvas />
+
+      {/* HERO SECTION STAGE */}
+      <section
         style={{
-          maxWidth: "var(--landing-max-width)",
-          width: "100%",
+          minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "clamp(120px, 16vh, 160px) clamp(16px, 5vw, 40px) 60px",
+          textAlign: "center",
+          position: "relative",
           zIndex: 1,
         }}
       >
-        {/* Category label */}
-        <motion.div variants={FADE_UP} transition={{ duration: 0.5 }}>
-          <span
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "6px",
-              fontFamily: "'Inter', ui-sans-serif, sans-serif",
-              fontSize: "12px",
-              fontWeight: 500,
-              color: "#6366F1",
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              marginBottom: "32px",
-            }}
+        <div
+          style={{
+            maxWidth: "1100px",
+            width: "100%",
+            position: "relative",
+          }}
+        >
+          {/* Badge — Re-triggers on scroll up/down (once: false) */}
+          <motion.div
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: false, amount: 0.3 }}
+            variants={FADE_LEFT}
           >
             <span
               style={{
-                display: "inline-block",
-                width: 6,
-                height: 6,
-                borderRadius: "50%",
-                backgroundColor: "#6366F1",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                fontFamily: "'Inter', ui-sans-serif, sans-serif",
+                fontSize: "12px",
+                fontWeight: 400,
+                color: "#e0e0e0",
+                backgroundColor: "rgba(128, 82, 255, 0.08)",
+                border: "1px solid rgba(128, 82, 255, 0.25)",
+                borderRadius: "22.5px",
+                padding: "6px 18px",
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                marginBottom: "32px",
+                backdropFilter: "blur(12px)",
               }}
-            />
-            v1.0 — Now Available
-          </span>
-        </motion.div>
+            >
+              <span
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: "50%",
+                  backgroundColor: "#ffb829",
+                  display: "inline-block",
+                  boxShadow: "0 0 10px #ffb829",
+                }}
+              />
+              Enterprise Code Security Auditor <span style={{ color: "#ffb829" }}>.</span>
+            </span>
+          </motion.div>
 
-        {/* Display headline */}
-        <motion.h1
-          variants={FADE_UP}
-          transition={{ duration: 0.6 }}
-          style={{
-            fontFamily: "'Inter', ui-sans-serif, sans-serif",
-            fontSize: "clamp(48px, 7vw, 80px)",
-            fontWeight: 500,
-            color: "var(--landing-paper)",
-            lineHeight: 0.96,
-            letterSpacing: "-0.04em",
-            margin: "0 0 32px",
-            maxWidth: "900px",
-            marginLeft: "auto",
-            marginRight: "auto",
-          }}
-        >
-          AI-Assisted Secure Code Review Platform
-        </motion.h1>
+          {/* Display Headline — Re-triggers on scroll up/down (once: false) */}
+          <motion.h1
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: false, amount: 0.3 }}
+            variants={FADE_LEFT}
+            style={{
+              fontFamily: "'Inter', ui-sans-serif, sans-serif",
+              fontSize: "clamp(48px, 7.5vw, 86px)",
+              fontWeight: 200,
+              color: "#ffffff",
+              lineHeight: 0.98,
+              letterSpacing: "-0.04em",
+              margin: "0 0 28px",
+              maxWidth: "960px",
+              marginLeft: "auto",
+              marginRight: "auto",
+            }}
+          >
+            AI-Assisted Secure Code Review Platform <span style={{ color: "#8052ff" }}>.</span>
+          </motion.h1>
 
-        {/* Subheading */}
-        <motion.p
-          variants={FADE_UP}
-          transition={{ duration: 0.6 }}
-          style={{
-            fontFamily: "'Inter', ui-sans-serif, sans-serif",
-            fontSize: "clamp(16px, 2vw, 20px)",
-            fontWeight: 400,
-            color: "var(--landing-pearl)",
-            lineHeight: 1.5,
-            letterSpacing: "-0.01em",
-            maxWidth: "640px",
-            marginLeft: "auto",
-            marginRight: "auto",
-            marginBottom: "48px",
-          }}
-        >
-          SecureLens combines deterministic AST analysis, semantic retrieval, and
-          AI reasoning to detect vulnerabilities and generate grounded security
-          reports before deployment.
-        </motion.p>
+          {/* Subheading — Re-triggers on scroll up/down (once: false) */}
+          <motion.p
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: false, amount: 0.3 }}
+            variants={FADE_RIGHT}
+            style={{
+              fontFamily: "'Inter', ui-sans-serif, sans-serif",
+              fontSize: "clamp(16px, 2vw, 20px)",
+              fontWeight: 400,
+              color: "#a0a0a0",
+              lineHeight: 1.6,
+              letterSpacing: "-0.01em",
+              maxWidth: "680px",
+              marginLeft: "auto",
+              marginRight: "auto",
+              marginBottom: "48px",
+            }}
+          >
+            SecureLens combines deterministic AST analysis, semantic security retrieval, and
+            Gemini AI reasoning to detect code vulnerabilities before deployment <span style={{ color: "#ffb829" }}>.</span>
+          </motion.p>
 
-        {/* CTA buttons */}
-        <motion.div
-          variants={FADE_UP}
-          transition={{ duration: 0.5 }}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "12px",
-            flexWrap: "wrap",
-            marginBottom: "80px",
-          }}
-        >
-          {/* Primary */}
-          <Link to="/app">
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+          {/* CTA Buttons — Re-triggers on scroll up/down (once: false) */}
+          <motion.div
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: false, amount: 0.3 }}
+            variants={FADE_UP}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "14px",
+              flexWrap: "wrap",
+              marginBottom: "80px",
+            }}
+          >
+            {/* Primary Violet Pill Action */}
+            <Link to="/app">
+              <motion.button
+                whileHover={{ scale: 1.03, backgroundColor: "#6b3df5", boxShadow: "0 0 35px rgba(128, 82, 255, 0.45)" }}
+                whileTap={{ scale: 0.97 }}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  fontFamily: "'Inter', ui-sans-serif, sans-serif",
+                  fontSize: "15px",
+                  fontWeight: 500,
+                  color: "#ffffff",
+                  backgroundColor: "#8052ff",
+                  border: "none",
+                  borderRadius: "22.5px",
+                  padding: "13px 32px",
+                  cursor: "pointer",
+                  letterSpacing: "-0.01em",
+                  transition: "all 0.2s ease",
+                  boxShadow: "0 0 20px rgba(128, 82, 255, 0.25)",
+                }}
+              >
+                Launch Auditor Dashboard
+                <ArrowRight size={15} />
+              </motion.button>
+            </Link>
+
+            {/* Ghost Link */}
+            <motion.a
+              href="https://github.com/Piy26ush/SecureLens"
+              target="_blank"
+              rel="noopener noreferrer"
+              whileHover={{ scale: 1.03, borderColor: "rgba(255,255,255,0.4)" }}
+              whileTap={{ scale: 0.97 }}
               style={{
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "8px",
                 fontFamily: "'Inter', ui-sans-serif, sans-serif",
                 fontSize: "15px",
-                fontWeight: 500,
-                color: "#fdfdfd",
-                backgroundColor: "#6366F1",
-                border: "none",
-                borderRadius: "9999px",
-                padding: "12px 28px",
+                fontWeight: 400,
+                color: "#e0e0e0",
+                backgroundColor: "transparent",
+                border: "1px solid rgba(255,255,255,0.15)",
+                borderRadius: "22.5px",
+                padding: "13px 32px",
                 cursor: "pointer",
                 letterSpacing: "-0.01em",
-                transition: "background-color 0.2s ease",
+                textDecoration: "none",
+                transition: "all 0.2s ease",
               }}
-              onMouseEnter={(e) =>
-                ((e.currentTarget as HTMLButtonElement).style.backgroundColor = "#4f46e5")
-              }
-              onMouseLeave={(e) =>
-                ((e.currentTarget as HTMLButtonElement).style.backgroundColor = "#6366F1")
-              }
             >
-              Launch SecureLens
-              <ArrowRight size={15} />
-            </motion.button>
-          </Link>
+              <Github size={15} />
+              View GitHub
+            </motion.a>
+          </motion.div>
+        </div>
+      </section>
 
-          {/* Ghost */}
-          <motion.a
-            href="https://github.com/Piy26ush/SecureLens"
-            target="_blank"
-            rel="noopener noreferrer"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "8px",
-              fontFamily: "'Inter', ui-sans-serif, sans-serif",
-              fontSize: "15px",
-              fontWeight: 500,
-              color: "var(--landing-paper)",
-              backgroundColor: "transparent",
-              border: "1px solid rgba(253,253,253,0.2)",
-              borderRadius: "9999px",
-              padding: "12px 28px",
-              cursor: "pointer",
-              letterSpacing: "-0.01em",
-              textDecoration: "none",
-              transition: "border-color 0.2s ease",
-            }}
-            onMouseEnter={(e) =>
-              ((e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(253,253,253,0.5)")
-            }
-            onMouseLeave={(e) =>
-              ((e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(253,253,253,0.2)")
-            }
-          >
-            <Github size={15} />
-            View GitHub
-          </motion.a>
-        </motion.div>
-
-        {/* Dashboard browser mockup */}
-        <motion.div
-          variants={FADE_UP}
-          transition={{ duration: 0.7 }}
+      {/* DASHBOARD SHOWCASE — 3D Parallax Tilt & Re-triggering Scroll Entrance */}
+      <section
+        style={{
+          padding: "0 clamp(16px, 5vw, 40px) 140px",
+          position: "relative",
+          zIndex: 1,
+        }}
+      >
+        <div
           style={{
-            width: "100%",
-            maxWidth: "1000px",
+            maxWidth: "1140px",
             marginLeft: "auto",
             marginRight: "auto",
-            backgroundColor: "var(--landing-charcoal)",
-            borderRadius: "14px",
-            overflow: "hidden",
-            border: "1px solid rgba(255,255,255,0.06)",
+            perspective: 1200,
           }}
         >
-          {/* Browser chrome bar */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              padding: "12px 16px",
-              borderBottom: "1px solid rgba(255,255,255,0.06)",
-              backgroundColor: "var(--landing-graphite)",
-            }}
-          >
-            <span style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: "#3f3f3f", display: "inline-block" }} />
-            <span style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: "#3f3f3f", display: "inline-block" }} />
-            <span style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: "#3f3f3f", display: "inline-block" }} />
-            <div
-              style={{
-                marginLeft: "12px",
-                flex: 1,
-                backgroundColor: "rgba(255,255,255,0.04)",
-                borderRadius: "9999px",
-                padding: "4px 14px",
-                fontFamily: "'Inter', ui-sans-serif, sans-serif",
-                fontSize: "12px",
-                color: "var(--landing-stone)",
-                letterSpacing: "0.01em",
-                textAlign: "center",
-                maxWidth: "300px",
-                marginLeft: "auto",
-                marginRight: "auto",
-              }}
-            >
-              securelens.vercel.app
-            </div>
-          </div>
-
-          {/* Dashboard screenshot */}
-          <img
-            src="/dashboard-preview.png"
-            alt="SecureLens dashboard — AI-powered security code review interface"
+          <motion.div
+            initial={{ opacity: 0, x: 80, scale: 0.95 }}
+            whileInView={{ opacity: 1, x: 0, scale: 1 }}
+            viewport={{ once: false, amount: 0.2 }}
+            transition={{ duration: 0.9, ease: EASING }}
+            onMouseMove={handleCardMouseMove}
+            onMouseLeave={handleCardMouseLeave}
             style={{
               width: "100%",
-              height: "auto",
-              display: "block",
-              objectFit: "cover",
+              backgroundColor: "rgba(10, 10, 15, 0.9)",
+              borderRadius: "20px",
+              overflow: "hidden",
+              border: "1px solid rgba(255, 255, 255, 0.12)",
+              boxShadow: "0 35px 90px -15px rgba(0, 0, 0, 0.95), 0 0 45px rgba(128, 82, 255, 0.2)",
+              backdropFilter: "blur(20px)",
+              transform: `rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg)`,
+              transition: "transform 0.15s ease-out, box-shadow 0.3s ease",
+              position: "relative",
             }}
-            loading="eager"
-          />
-        </motion.div>
-      </motion.div>
-    </section>
+          >
+            {/* Ambient Cursor Spotlight Glare Overlay */}
+            <div
+              aria-hidden
+              style={{
+                position: "absolute",
+                inset: 0,
+                background: `radial-gradient(600px circle at ${tilt.spotX}% ${tilt.spotY}%, rgba(128, 82, 255, 0.15), transparent 40%)`,
+                pointerEvents: "none",
+                zIndex: 2,
+              }}
+            />
+
+            {/* Chrome Bar */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "14px 22px",
+                borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
+                backgroundColor: "rgba(15, 15, 22, 0.95)",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <span style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: "#ff5f56", display: "inline-block" }} />
+                <span style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: "#ffbd2e", display: "inline-block" }} />
+                <span style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: "#27c93f", display: "inline-block" }} />
+              </div>
+
+              <div
+                style={{
+                  backgroundColor: "rgba(255, 255, 255, 0.04)",
+                  borderRadius: "22.5px",
+                  padding: "5px 20px",
+                  fontFamily: "'Inter', ui-sans-serif, sans-serif",
+                  fontSize: "12px",
+                  color: "#a0a0a0",
+                  letterSpacing: "0.01em",
+                  textAlign: "center",
+                  maxWidth: "360px",
+                  width: "100%",
+                  border: "1px solid rgba(255, 255, 255, 0.05)",
+                }}
+              >
+                🔒 securelens.vercel.app/app
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", color: "#8052ff", fontWeight: 500 }}>
+                <ShieldCheck size={14} />
+                Live Node
+              </div>
+            </div>
+
+            {/* Dashboard Screenshot */}
+            <div style={{ position: "relative", width: "100%", overflow: "hidden" }}>
+              <img
+                src="/dashboard-preview.png"
+                alt="SecureLens Auditor Dashboard"
+                style={{
+                  width: "100%",
+                  height: "auto",
+                  display: "block",
+                  objectFit: "cover",
+                }}
+              />
+            </div>
+          </motion.div>
+        </div>
+      </section>
+    </div>
   );
 }

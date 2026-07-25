@@ -2,9 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { LandingNav } from "@/components/landing/LandingNav";
 import { HeroSection } from "@/components/landing/HeroSection";
-import { ProblemSection } from "@/components/landing/ProblemSection";
-import { ArchitectureSection } from "@/components/landing/ArchitectureSection";
+import { TechMarquee } from "@/components/landing/TechMarquee";
 import { FeaturesSection } from "@/components/landing/FeaturesSection";
+import { ArchitectureSection } from "@/components/landing/ArchitectureSection";
+import { StatsSection } from "@/components/landing/StatsSection";
+import { ProblemSection } from "@/components/landing/ProblemSection";
 import { ShowcaseSection } from "@/components/landing/ShowcaseSection";
 import { TechSection } from "@/components/landing/TechSection";
 import { LandingFooter } from "@/components/landing/LandingFooter";
@@ -35,22 +37,36 @@ function LandingPage() {
   }, []);
 
   if (!mounted) {
-    return <div style={{ backgroundColor: "var(--landing-canvas)", minHeight: "100vh" }} />;
+    return <div style={{ backgroundColor: "#000000", minHeight: "100vh" }} />;
   }
+
   return (
     <div
       style={{
-        backgroundColor: "var(--landing-canvas)",
-        color: "var(--landing-paper)",
+        backgroundColor: "#000000",
+        color: "#ffffff",
         minHeight: "100vh",
         fontFamily: "'Inter', ui-sans-serif, system-ui, sans-serif",
+        position: "relative",
       }}
     >
       <LandingNav />
+
+      {/* Hero Section */}
       <HeroSection />
-      <ProblemSection />
-      <ArchitectureSection />
+
+      {/* Infinite Tech Stack Marquee Ticker */}
+      <TechMarquee />
+
+      {/* Core 3 Security Pillars */}
       <FeaturesSection />
+
+      {/* Animated Rolling Counter Stat Cards */}
+      <StatsSection />
+
+      {/* 5-Stage Architecture Pipeline */}
+      <ArchitectureSection />
+      <ProblemSection />
       <ShowcaseSection />
       <TechSection />
       <LandingFooter />

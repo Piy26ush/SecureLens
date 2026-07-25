@@ -1,39 +1,38 @@
 import { motion } from "motion/react";
 import { FileCode2, Search, Brain, ShieldCheck, Code2 } from "lucide-react";
 
+const EASING = [0.22, 1, 0.36, 1];
+
 const STAGES = [
   {
     icon: Code2,
-    label: "Python Code",
-    description: "Developer submits raw Python source code for analysis.",
-    accent: false,
+    label: "Python Source Submission",
+    description: "Developer submits raw Python code or loads multi-file repository scopes.",
+    slideFrom: "left" as const,
   },
   {
     icon: FileCode2,
-    label: "AST Static Analysis",
-    description:
-      "Deterministic traversal of the Abstract Syntax Tree detects dangerous patterns without executing code.",
-    accent: false,
+    label: "AST Static Syntax Analysis",
+    description: "Deterministic AST traversal flags vulnerable code patterns without executing code.",
+    slideFrom: "right" as const,
   },
   {
     icon: Search,
-    label: "Security Knowledge Retrieval",
-    description:
-      "Relevant OWASP Top 10 and CWE guidelines are retrieved using semantic TF-IDF search.",
-    accent: false,
+    label: "Semantic Security Knowledge RAG",
+    description: "Retrieves OWASP guidelines and CWE IDs using vector similarity search.",
+    slideFrom: "left" as const,
   },
   {
     icon: Brain,
-    label: "AI Reasoning",
-    description:
-      "Gemini AI synthesizes AST findings and retrieved context into grounded, human-readable explanations.",
-    accent: false,
+    label: "Gemini AI Security Reasoning",
+    description: "Synthesizes AST findings and RAG context into grounded threat explanations.",
+    slideFrom: "right" as const,
   },
   {
     icon: ShieldCheck,
-    label: "Security Report",
-    description:
-      "A structured report is returned with severity ratings, attack scenarios, OWASP/CWE references, and secure code fixes.",
+    label: "Auditor Security Report",
+    description: "Outputs structured risk metrics, attack scenarios, and verified code fixes.",
+    slideFrom: "left" as const,
     accent: true,
   },
 ];
@@ -43,163 +42,145 @@ export function ArchitectureSection() {
     <section
       id="architecture"
       style={{
-        backgroundColor: "var(--landing-canvas)",
-        padding: "clamp(64px, 8vh, 120px) clamp(16px, 5vw, 40px)",
+        backgroundColor: "#000000",
+        padding: "clamp(80px, 12vh, 160px) clamp(16px, 5vw, 40px)",
+        position: "relative",
+        zIndex: 1,
       }}
     >
       <div
         style={{
-          maxWidth: "var(--landing-max-width)",
+          maxWidth: "1140px",
           marginLeft: "auto",
           marginRight: "auto",
         }}
       >
-        {/* Section header */}
+        {/* Header — Re-triggers on scroll up & down (once: false) */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.6 }}
+          initial={{ opacity: 0, x: -70 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: false, amount: 0.2 }}
+          transition={{ duration: 0.8, ease: EASING }}
           style={{ marginBottom: "80px" }}
         >
           <p
             style={{
               fontFamily: "'Inter', ui-sans-serif, sans-serif",
               fontSize: "12px",
-              fontWeight: 500,
-              color: "#6366F1",
+              fontWeight: 400,
+              color: "#8052ff",
               letterSpacing: "0.08em",
               textTransform: "uppercase",
               marginBottom: "16px",
             }}
           >
-            How it works
+            Pipeline Flow <span style={{ color: "#ffb829" }}>.</span>
           </p>
           <h2
             style={{
               fontFamily: "'Inter', ui-sans-serif, sans-serif",
-              fontSize: "clamp(32px, 4vw, 48px)",
-              fontWeight: 500,
-              color: "var(--landing-paper)",
+              fontSize: "clamp(32px, 4.5vw, 56px)",
+              fontWeight: 200,
+              color: "#ffffff",
               lineHeight: 1.05,
               letterSpacing: "-0.03em",
               margin: "0 0 16px",
             }}
           >
-            From code to security report
+            From code to security report <span style={{ color: "#ffb829" }}>.</span>
           </h2>
           <p
             style={{
               fontFamily: "'Inter', ui-sans-serif, sans-serif",
-              fontSize: "18px",
+              fontSize: "17px",
               fontWeight: 400,
-              color: "var(--landing-ash)",
+              color: "#a0a0a0",
               lineHeight: 1.5,
-              maxWidth: "520px",
+              maxWidth: "540px",
             }}
           >
-            A multi-stage pipeline that combines deterministic analysis with
-            AI-generated context.
+            A multi-stage pipeline that combines deterministic AST scanning with AI reasoning.
           </p>
         </motion.div>
 
-        {/* Pipeline */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-start",
-            maxWidth: "640px",
-          }}
-        >
+        {/* Pipeline Stages — Re-triggers on scroll up & down (once: false) */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "24px", maxWidth: "840px" }}>
           {STAGES.map((stage, idx) => {
             const Icon = stage.icon;
-            const isLast = idx === STAGES.length - 1;
+            const isLeft = stage.slideFrom === "left";
 
             return (
               <motion.div
                 key={stage.label}
-                initial={{ opacity: 0, x: -16 }}
+                initial={{ opacity: 0, x: isLeft ? -80 : 80 }}
                 whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.5, delay: idx * 0.08 }}
-                style={{ display: "flex", gap: "24px", width: "100%" }}
+                viewport={{ once: false, amount: 0.2 }}
+                transition={{ duration: 0.8, ease: EASING, delay: idx * 0.08 }}
+                whileHover={{
+                  x: isLeft ? 6 : -6,
+                  borderColor: "rgba(128, 82, 255, 0.4)",
+                  boxShadow: "0 15px 35px -10px rgba(128, 82, 255, 0.2)",
+                }}
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: "24px",
+                  backgroundColor: "rgba(10, 10, 15, 0.85)",
+                  border: stage.accent
+                    ? "1px solid rgba(128, 82, 255, 0.4)"
+                    : "1px solid rgba(255, 255, 255, 0.08)",
+                  borderRadius: "18px",
+                  padding: "28px 30px",
+                  backdropFilter: "blur(12px)",
+                  boxShadow: stage.accent
+                    ? "0 0 30px rgba(128, 82, 255, 0.15)"
+                    : "none",
+                  transition: "all 0.3s ease",
+                }}
               >
-                {/* Left column: icon + line */}
+                {/* Stage Icon */}
                 <div
                   style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 14,
+                    backgroundColor: stage.accent ? "#8052ff" : "rgba(128, 82, 255, 0.1)",
+                    border: stage.accent ? "none" : "1px solid rgba(128, 82, 255, 0.25)",
                     display: "flex",
-                    flexDirection: "column",
                     alignItems: "center",
+                    justifyContent: "center",
                     flexShrink: 0,
                   }}
                 >
-                  {/* Icon circle */}
-                  <div
-                    style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: "50%",
-                      backgroundColor: stage.accent
-                        ? "#6366F1"
-                        : "var(--landing-charcoal)",
-                      border: stage.accent
-                        ? "none"
-                        : "1px solid rgba(255,255,255,0.08)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
-                    }}
-                  >
-                    <Icon
-                      size={17}
-                      color={stage.accent ? "#fff" : "var(--landing-ash)"}
-                      strokeWidth={1.75}
-                    />
-                  </div>
-
-                  {/* Connector line */}
-                  {!isLast && (
-                    <motion.div
-                      initial={{ scaleY: 0 }}
-                      whileInView={{ scaleY: 1 }}
-                      viewport={{ once: true, margin: "-40px" }}
-                      transition={{ duration: 0.4, delay: idx * 0.08 + 0.2 }}
-                      style={{
-                        width: "1px",
-                        flex: 1,
-                        minHeight: "40px",
-                        backgroundColor: "rgba(255,255,255,0.08)",
-                        transformOrigin: "top",
-                        margin: "4px 0",
-                      }}
-                    />
-                  )}
+                  <Icon size={19} color={stage.accent ? "#ffffff" : "#8052ff"} strokeWidth={1.5} />
                 </div>
 
-                {/* Right column: text */}
-                <div style={{ paddingBottom: isLast ? 0 : "40px" }}>
+                {/* Stage Text */}
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: "flex", alignItems: "center", justify: "space-between", marginBottom: "6px" }}>
+                    <h3
+                      style={{
+                        fontFamily: "'Inter', ui-sans-serif, sans-serif",
+                        fontSize: "17px",
+                        fontWeight: 400,
+                        color: stage.accent ? "#8052ff" : "#ffffff",
+                        lineHeight: 1.3,
+                        margin: 0,
+                      }}
+                    >
+                      {stage.label}
+                    </h3>
+                    <span style={{ fontFamily: "'Fira Code', monospace", fontSize: "11px", color: "#ffb829" }}>
+                      0{idx + 1}
+                    </span>
+                  </div>
                   <p
                     style={{
                       fontFamily: "'Inter', ui-sans-serif, sans-serif",
-                      fontSize: "16px",
-                      fontWeight: 500,
-                      color: stage.accent ? "#6366F1" : "var(--landing-paper)",
-                      lineHeight: 1.25,
-                      marginBottom: "8px",
-                      marginTop: "8px",
-                    }}
-                  >
-                    {stage.label}
-                  </p>
-                  <p
-                    style={{
-                      fontFamily: "'Inter', ui-sans-serif, sans-serif",
-                      fontSize: "15px",
+                      fontSize: "14px",
                       fontWeight: 400,
-                      color: "var(--landing-stone)",
-                      lineHeight: 1.5,
+                      color: "#a0a0a0",
+                      lineHeight: 1.55,
                       margin: 0,
                     }}
                   >

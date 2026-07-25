@@ -1,6 +1,22 @@
 {
-  "name": "tanstack_start_ts",
-  "private": true,
+  "name": "securelens-ai",
+  "version": "1.0.0",
+  "description": "AI-Assisted Secure Code Auditor & AST Vulnerability Scanner",
+  "bin": {
+    "securelens": "./bin/securelens.js"
+  },
+  "keywords": [
+    "security",
+    "ast",
+    "python",
+    "auditor",
+    "owasp",
+    "cwe",
+    "ai",
+    "gemini",
+    "scanner"
+  ],
+  "license": "MIT",
   "sideEffects": false,
   "type": "module",
   "scripts": {
