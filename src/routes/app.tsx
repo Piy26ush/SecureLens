@@ -233,11 +233,11 @@ function SecureLensPage() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4 }}
-        className="flex min-h-screen flex-col"
+        className="flex h-screen flex-col overflow-hidden"
       >
-        <div className="flex flex-1 flex-col gap-4 p-4 lg:flex-row lg:gap-5 lg:p-6">
+        <div className="flex flex-1 gap-4 p-4 lg:flex-row lg:gap-5 lg:p-6 overflow-hidden min-h-0">
           {/* LEFT PANEL — 45% */}
-          <section className="flex min-h-[560px] flex-col gap-4 rounded-2xl border border-white/[0.06] p-4 backdrop-blur lg:min-h-0 lg:w-[45%] lg:p-5" style={{ backgroundColor: "rgba(255,255,255,0.02)" }}>
+          <section className="flex flex-col gap-4 rounded-2xl border border-white/[0.06] p-4 backdrop-blur lg:w-[45%] lg:p-5 h-full overflow-hidden" style={{ backgroundColor: "rgba(255,255,255,0.02)" }}>
             <Header />
 
             <div className="flex flex-col gap-3">
@@ -266,9 +266,9 @@ function SecureLensPage() {
               </div>
             </div>
 
-            <div className="flex min-h-[380px] flex-1 flex-col">
+            <div className="flex flex-1 flex-col min-h-0">
               {isProjectActive && projectFiles ? (
-                <div className="flex flex-1 flex-col gap-3 lg:flex-row overflow-hidden max-h-[440px]">
+                <div className="flex flex-1 flex-col gap-3 lg:flex-row overflow-hidden min-h-0">
                   {/* File tree sidebar */}
                   <div className="w-full lg:w-1/3 border border-white/[0.06] rounded-xl p-2 overflow-y-auto flex flex-col gap-1 max-h-[140px] lg:max-h-none" style={{ backgroundColor: "rgba(0,0,0,0.4)" }}>
                     <div className="text-[9px] font-bold uppercase tracking-wider px-2 py-1 flex items-center gap-1" style={{ color: "#737373" }}>
@@ -354,7 +354,7 @@ function SecureLensPage() {
           </section>
 
           {/* RIGHT PANEL — 55% */}
-          <section className="flex min-h-[560px] flex-1 flex-col overflow-hidden rounded-2xl border border-white/[0.06] backdrop-blur lg:min-h-0" style={{ backgroundColor: "rgba(255,255,255,0.02)" }}>
+          <section className="flex flex-col overflow-hidden rounded-2xl border border-white/[0.06] backdrop-blur lg:flex-1 h-full" style={{ backgroundColor: "rgba(255,255,255,0.02)" }}>
             <AnimatePresence mode="wait">
               {view === "idle" && (
                 <motion.div

@@ -54,11 +54,11 @@ export function CodeEditor({ value, onChange, disabled }: Props) {
           readOnly
           value={value}
           placeholder="Loading auditor editor..."
-          className="w-full resize-none bg-transparent p-4 font-mono text-[13px] leading-relaxed outline-none h-[340px]"
+          className="w-full flex-1 resize-none bg-transparent p-4 font-mono text-[13px] leading-relaxed outline-none"
           style={{ fontFamily: "'Fira Code', ui-monospace, monospace", color: "#d4d4d4" }}
         />
       ) : ready && !isMobile ? (
-        <div className="w-full h-[340px]">
+        <div className="w-full flex-1 min-h-0">
           <Editor
             height="100%"
             defaultLanguage="python"
@@ -89,7 +89,7 @@ export function CodeEditor({ value, onChange, disabled }: Props) {
           disabled={disabled}
           spellCheck={false}
           placeholder="Paste Python code here for security auditing..."
-          className="w-full resize-none bg-transparent p-4 font-mono text-[13px] leading-relaxed outline-none h-[340px]"
+          className="w-full flex-1 resize-none bg-transparent p-4 font-mono text-[13px] leading-relaxed outline-none"
           style={{ fontFamily: "'Fira Code', ui-monospace, monospace", color: "#d4d4d4" }}
         />
       )}
