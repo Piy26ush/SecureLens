@@ -5,6 +5,12 @@
   "bin": {
     "securelens": "./bin/securelens.js"
   },
+  "files": [
+    "bin",
+    "package.json",
+    "README.md",
+    "docs"
+  ],
   "keywords": [
     "security",
     "ast",
