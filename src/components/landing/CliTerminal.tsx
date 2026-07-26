@@ -149,7 +149,7 @@ export function CliTerminal() {
             </div>
 
             <span style={{ fontFamily: "'Fira Code', monospace", fontSize: "11px", color: "#a0a0a0" }}>
-              zsh — securelens-cli v1.0
+              zsh — securelens-cli
             </span>
 
             <button

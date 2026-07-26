@@ -43,9 +43,6 @@ export function Header() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-[14px] font-semibold tracking-tight text-[#fdfdfd]">SecureLens</h1>
-            <span className="rounded-full border border-[#6366F1]/30 bg-[#6366F1]/10 px-2 py-0.5 text-[10px] font-medium tracking-wider text-[#6366F1]">
-              v1.0
-            </span>
           </div>
           <p className="text-[10px] text-[#737373]">AI-Assisted Secure Code Auditor</p>
         </div>

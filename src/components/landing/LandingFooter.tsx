@@ -28,26 +28,13 @@ export function LandingFooter() {
           <span
             style={{
               fontFamily: "'Inter', ui-sans-serif, sans-serif",
-              fontSize: "14px",
+              fontSize: "15px",
               fontWeight: 500,
-              color: "var(--landing-paper)",
+              color: "#fdfdfd",
               letterSpacing: "-0.01em",
             }}
           >
             SecureLens
-          </span>
-          <span
-            style={{
-              fontFamily: "'Inter', ui-sans-serif, sans-serif",
-              fontSize: "11px",
-              fontWeight: 500,
-              color: "var(--landing-stone)",
-              padding: "2px 8px",
-              borderRadius: "9999px",
-              backgroundColor: "rgba(255, 255, 255, 0.05)",
-            }}
-          >
-            v1.0
           </span>
         </div>
 
