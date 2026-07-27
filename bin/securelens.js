@@ -51,24 +51,45 @@ const pyFiles = findPythonFiles(targetPath);
 const VULN_PATTERNS = [
   {
     type: "SQL Injection (CWE-89)",
-    pattern: /cursor\.execute\s*\(\s*["'].*?\+\s*.*?\)/i,
+    pattern: /(query|sql|stmt)\s*=\s*["'].*?SELECT.*?["']\s*\+\s*|cursor\.execute\s*\(\s*["'].*?\+\s*.*?\)/i,
     severity: "CRITICAL",
     owasp: "A03:2021 — Injection",
     fix: "Use parameterized queries: cursor.execute('SELECT * FROM t WHERE id=?', (id,))",
   },
   {
     type: "OS Command Injection (CWE-78)",
-    pattern: /(os\.system|os\.popen|subprocess\.Popen)\s*\(\s*.*?[\+].*?\)/i,
+    pattern: /(os\.system|os\.popen|subprocess\.Popen|subprocess\.run)\s*\(\s*.*?[\+].*?\)/i,
     severity: "HIGH",
     owasp: "A03:2021 — Injection",
     fix: "Use subprocess.run(['cmd', arg], shell=False)",
   },
   {
     type: "Path Traversal (CWE-22)",
-    pattern: /open\s*\(\s*.*?[\+].*?\)/i,
+    pattern: /(open|file)\s*\(\s*.*?[\+].*?\)/i,
     severity: "HIGH",
     owasp: "A01:2021 — Broken Access Control",
     fix: "Sanitize path using os.path.abspath and verify startswith base dir",
+  },
+  {
+    type: "Hardcoded API Secret (CWE-798)",
+    pattern: /(SECRET|API_KEY|PASSWORD|TOKEN|AUTH_KEY)\s*=\s*["'][A-Za-z0-9_\-\.\/]{12,}["']/i,
+    severity: "HIGH",
+    owasp: "A07:2021 — Identification and Authentication Failures",
+    fix: "Load secrets from environment variables: os.getenv('SECRET_TOKEN')",
+  },
+  {
+    type: "Weak Cryptographic Hash (CWE-328)",
+    pattern: /hashlib\.(md5|sha1)\s*\(/i,
+    severity: "MEDIUM",
+    owasp: "A02:2021 — Cryptographic Failures",
+    fix: "Use strong collision-resistant hash algorithms: hashlib.sha256() or bcrypt/argon2",
+  },
+  {
+    type: "Insecure Deserialization (CWE-502)",
+    pattern: /(pickle\.loads|yaml\.load)\s*\(/i,
+    severity: "CRITICAL",
+    owasp: "A08:2021 — Software and Data Integrity Failures",
+    fix: "Use safe unmarshalling: json.loads() or yaml.safe_load()",
   },
 ];
 
