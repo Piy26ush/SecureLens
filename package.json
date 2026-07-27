@@ -1,8 +1,9 @@
 {
   "name": "securelens-ai",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "AI-Assisted Secure Code Auditor & AST Vulnerability Scanner",
   "bin": {
+    "securelens-ai": "./bin/securelens.js",
     "securelens": "./bin/securelens.js"
   },
   "files": [
