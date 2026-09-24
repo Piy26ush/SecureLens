@@ -1,6 +1,8 @@
 import ast
 import logging
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional, Set
+
+from backend.scanner.analyzer import DataFlowAnalyzer
 
 # Import modular rules
 from backend.scanner.rules.injection_rules import (
@@ -29,12 +31,12 @@ logger = logging.getLogger("securelens.scanner")
 
 class SecurityVisitor(ast.NodeVisitor):
     """
-    AST Security Orchestrator. Walks the AST and dispatches nodes to registered modular rules.
+    AST Security Orchestrator. Walks the AST and dispatches nodes to registered modular rules,
+    leveraging the DataFlowAnalyzer for source-to-sink taint tracking.
     """
-    def __init__(self):
+    def __init__(self, dataflow: Optional[DataFlowAnalyzer] = None):
         self.findings: List[Dict[str, Any]] = []
-        # Local variables tracking string operations for SQLi / Command injection dataflow checks
-        self.dynamic_variables = set()
+        self.dataflow: Optional[DataFlowAnalyzer] = dataflow
 
         # Initialize and register modular rule detectors
         self.rules = [
@@ -54,25 +56,6 @@ class SecurityVisitor(ast.NodeVisitor):
         ]
 
     def visit_Assign(self, node: ast.Assign):
-        # Dataflow tracking: flag variables holding dynamically built strings (concatenation, formatting, f-strings)
-        val = node.value
-        is_dynamic_val = False
-        
-        if isinstance(val, ast.JoinedStr):
-            is_dynamic_val = True
-        elif isinstance(val, ast.BinOp):
-            is_dynamic_val = True
-        elif (isinstance(val, ast.Call) and 
-              isinstance(val.func, ast.Attribute) and 
-              val.func.attr == 'format'):
-            is_dynamic_val = True
-
-        if is_dynamic_val:
-            for target in node.targets:
-                if isinstance(target, ast.Name):
-                    self.dynamic_variables.add(target.id)
-
-        # Dispatch node to all registered rules
         for rule in self.rules:
             rule.visit_Assign(node)
         self.generic_visit(node)
@@ -94,7 +77,9 @@ class SecurityVisitor(ast.NodeVisitor):
 
 def scan_code_ast(code: str) -> List[Dict[str, Any]]:
     """
-    Modular AST Scan Entry Point. Parses code and executes security checks.
+    Modular SAST Scan Entry Point.
+    Pass 1: Intra-procedural Data-Flow & Taint Propagation Analysis.
+    Pass 2: Modular Rule Dispatch & Evidence-Based Finding Generation.
     """
     try:
         tree = ast.parse(code)
@@ -105,9 +90,26 @@ def scan_code_ast(code: str) -> List[Dict[str, Any]]:
             "severity": "LOW",
             "snippet": f"Syntax Error: {e.msg}",
             "cwe_id": "CWE-684",
-            "owasp_id": "N/A"
+            "owasp_id": "N/A",
+            "detection_method": "ast_parser"
         }]
 
-    visitor = SecurityVisitor()
+    # Pass 1: Data-Flow & Taint Analysis
+    dfa = DataFlowAnalyzer()
+    dfa.analyze(tree)
+
+    # Pass 2: AST Security Visitor & Rule Evaluation
+    visitor = SecurityVisitor(dataflow=dfa)
     visitor.visit(tree)
-    return visitor.findings
+
+    # Pass 3: Deterministic Finding Deduplication
+    unique_findings: List[Dict[str, Any]] = []
+    seen_keys: Set[str] = set()
+
+    for finding in visitor.findings:
+        dedup_key = f"{finding.get('type')}:{finding.get('line')}:{finding.get('cwe_id')}"
+        if dedup_key not in seen_keys:
+            seen_keys.add(dedup_key)
+            unique_findings.append(finding)
+
+    return unique_findings

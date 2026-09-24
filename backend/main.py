@@ -76,6 +76,8 @@ class FindingModel(BaseModel):
     fix_snippet: Optional[str] = None
     source_citation: Optional[str] = None
     model_used: Optional[str] = None
+    detection_method: Optional[str] = "ast_structural"
+    evidence: Optional[Dict[str, Any]] = None
 
 class ScanResponse(BaseModel):
     findings: List[FindingModel]

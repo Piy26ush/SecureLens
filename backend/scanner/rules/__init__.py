@@ -1,5 +1,5 @@
 import ast
-from typing import List, Dict, Any, Set
+from typing import List, Dict, Any, Set, Optional
 
 class BaseRule:
     """
@@ -8,18 +8,33 @@ class BaseRule:
     def __init__(self, visitor):
         self.visitor = visitor
 
-    def add_finding(self, type_key: str, line: int, severity: str, snippet: str, cwe_id: str, owasp_id: str):
+    def add_finding(
+        self, 
+        type_key: str, 
+        line: int, 
+        severity: str, 
+        snippet: str, 
+        cwe_id: str, 
+        owasp_id: str,
+        evidence: Optional[Dict[str, Any]] = None,
+        detection_method: str = "ast_structural"
+    ):
         """
-        Helper method to register a security finding.
+        Helper method to register a security finding with optional SAST evidence metadata.
         """
-        self.visitor.findings.append({
+        finding = {
             "type": type_key,
             "line": line,
             "severity": severity,
             "snippet": snippet,
             "cwe_id": cwe_id,
-            "owasp_id": owasp_id
-        })
+            "owasp_id": owasp_id,
+            "detection_method": detection_method
+        }
+        if evidence:
+            finding["evidence"] = evidence
+
+        self.visitor.findings.append(finding)
 
     def visit_Assign(self, node: ast.Assign):
         pass

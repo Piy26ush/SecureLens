@@ -44,7 +44,7 @@ backend/scanner/
 
 The flowchart below demonstrates how AST node traversal, state tracking (dataflow), and modular rule evaluation decouple parsing logic from target rule validation checks:
 
-![Phase 2 Rule Engine Architecture](file:///Users/piyush/Desktop/SecureLens/docs/v2_phase2_architecture.png)
+![Phase 2 Rule Engine Architecture](file:///Users/piyush/Desktop/SecureLens/docs/v2/_phase2_architecture.png)
 
 ---
 

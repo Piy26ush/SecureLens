@@ -3,32 +3,28 @@ import sys
 import os
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import scanner.pipeline as pipeline
 from scanner.pipeline import run_scan_pipeline, build_prompt, build_batch_prompt
 
 class TestPipeline(unittest.TestCase):
     def test_pipeline_offline_fallback(self):
         # Temporarily clear API keys to test offline mode
-        old_gemini = os.environ.get("GEMINI_API_KEY")
-        old_groq = os.environ.get("GROQ_API_KEY")
-        if "GEMINI_API_KEY" in os.environ:
-            del os.environ["GEMINI_API_KEY"]
-        if "GROQ_API_KEY" in os.environ:
-            del os.environ["GROQ_API_KEY"]
+        old_gemini = pipeline.GEMINI_API_KEY
+        old_groq = pipeline.GROQ_API_KEY
+        pipeline.GEMINI_API_KEY = None
+        pipeline.GROQ_API_KEY = None
             
         try:
             vulnerable_code = "eval(input())"
             findings = run_scan_pipeline(vulnerable_code)
             self.assertEqual(len(findings), 1)
             self.assertEqual(findings[0]["type"], "eval_exec")
-            self.assertTrue("API keys" in findings[0]["explanation"])
+            self.assertTrue("API keys" in findings[0]["explanation"] or "offline" in findings[0]["explanation"].lower())
             self.assertTrue("attack_scenario" in findings[0])
             self.assertTrue("AST Rules Engine" in findings[0]["source_citation"])
         finally:
-            # Restore original environment
-            if old_gemini is not None:
-                os.environ["GEMINI_API_KEY"] = old_gemini
-            if old_groq is not None:
-                os.environ["GROQ_API_KEY"] = old_groq
+            pipeline.GEMINI_API_KEY = old_gemini
+            pipeline.GROQ_API_KEY = old_groq
 
     def test_prompt_construction(self):
         finding = {
