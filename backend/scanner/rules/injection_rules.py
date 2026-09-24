@@ -72,7 +72,7 @@ class SqlInjectionRule(BaseRule):
                     detection_method="taint_dataflow"
                 )
                 return
-            elif taint_state == TaintState.UNTAINTED:
+            elif taint_state in (TaintState.UNTAINTED, TaintState.SANITIZED):
                 return
             elif sym and sym.is_dynamic_expression:
                 self.add_finding(
@@ -134,6 +134,11 @@ class CommandInjectionRule(BaseRule):
             if all_consts and not has_shell_true:
                 return
 
+        # 3. Direct Sanitizer check (e.g. os.system(shlex.quote(cmd)))
+        is_cmd_san, _ = SanitizerRegistry.is_command_sanitizer(first_arg)
+        if is_cmd_san:
+            return
+
         dataflow = getattr(self.visitor, 'dataflow', None)
         if dataflow:
             taint_state, sym, src_desc, src_line = dataflow.get_taint_info(first_arg)
@@ -150,7 +155,7 @@ class CommandInjectionRule(BaseRule):
                     detection_method="taint_dataflow"
                 )
                 return
-            elif taint_state == TaintState.UNTAINTED:
+            elif taint_state in (TaintState.UNTAINTED, TaintState.SANITIZED):
                 return
             elif sym and sym.is_dynamic_expression:
                 self.add_finding(
@@ -191,6 +196,11 @@ class PathTraversalRule(BaseRule):
             # Static file path literal -> Safe
             return
 
+        # Direct Sanitizer check (e.g. open(os.path.basename(file)))
+        is_path_san, _ = SanitizerRegistry.is_path_sanitizer(first_arg)
+        if is_path_san:
+            return
+
         dataflow = getattr(self.visitor, 'dataflow', None)
         if dataflow:
             taint_state, sym, src_desc, src_line = dataflow.get_taint_info(first_arg)
@@ -207,7 +217,7 @@ class PathTraversalRule(BaseRule):
                     detection_method="taint_dataflow"
                 )
                 return
-            elif taint_state == TaintState.UNTAINTED:
+            elif taint_state in (TaintState.UNTAINTED, TaintState.SANITIZED):
                 return
             elif sym and sym.is_dynamic_expression:
                 self.add_finding(

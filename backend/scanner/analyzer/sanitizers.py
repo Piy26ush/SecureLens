@@ -23,22 +23,22 @@ class SanitizerRegistry:
         return False
 
     @classmethod
-    def is_command_sanitizer(cls, node: ast.AST) -> bool:
+    def is_command_sanitizer(cls, node: ast.AST) -> Tuple[bool, Optional[str]]:
         if isinstance(node, ast.Call):
             if isinstance(node.func, ast.Name) and node.func.id in cls.COMMAND_SANITIZERS:
-                return True
+                return True, node.func.id
             if isinstance(node.func, ast.Attribute) and node.func.attr == 'quote':
-                return True
-        return False
+                return True, "shlex.quote"
+        return False, None
 
     @classmethod
-    def is_path_sanitizer(cls, node: ast.AST) -> bool:
+    def is_path_sanitizer(cls, node: ast.AST) -> Tuple[bool, Optional[str]]:
         if isinstance(node, ast.Call):
             if isinstance(node.func, ast.Name) and node.func.id in cls.PATH_SANITIZERS:
-                return True
+                return True, node.func.id
             if isinstance(node.func, ast.Attribute) and node.func.attr in ('basename', 'secure_filename'):
-                return True
-        return False
+                return True, f"os.path.{node.func.attr}"
+        return False, None
 
     @classmethod
     def is_sql_parameterized(cls, call_node: ast.Call) -> Tuple[bool, Optional[str]]:
